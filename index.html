@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+</head>
+<body>
+	<style type="text/css">
+		html, body {
+			height: 100%;
+			overflow: hidden;
+			margin: 0;
+			background: black;
+		}
+
+		body {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+	</style>
+	<script type="module">
+
+		const [pixelWidth, pixelHeight] = [95, 32];
+
+		const loadImages = async () => {
+			const imageSheet = new Image();
+			imageSheet.src = "./assets/posy.bmp";
+			await imageSheet.decode();
+			const canvas = document.createElement("canvas");
+			canvas.width = pixelWidth;
+			canvas.height = pixelHeight;
+			const imageData = [];
+			const ctx = canvas.getContext("2d", {willReadFrequently: true});
+			for (let i = 0; i < imageSheet.height; i += pixelHeight) {
+				for (let j = 0; j < imageSheet.width; j += pixelWidth) {
+					ctx.drawImage(imageSheet, -j, -i);
+					imageData.push(ctx.getImageData(0, 0, pixelWidth, pixelHeight).data.map(n => n > 0x80 ? 0xFF : 0x00));
+				}
+			}
+			return imageData;
+		};
+
+		// const colors = [
+		// 	[0xb1 / 0xFF, 0xb3 / 0xFF, 0xae / 0xFF],
+		// 	[0xc2 / 0xFF, 0x55 / 0xFF, 0x3c / 0xFF],
+		// 	[0x00 / 0xFF, 0x8b / 0xFF, 0x60 / 0xFF],
+		// 	[0x25 / 0xFF, 0x52 / 0xFF, 0xa5 / 0xFF],
+		// 	[0xFF / 0xFF, 0x00 / 0xFF, 0xFF / 0xFF],
+		// ].flat();
+
+		const images = await loadImages();
+
+		const canvas = document.createElement("canvas");
+		document.body.append(canvas);
+
+		const gl = canvas.getContext("webgl", {
+			alpha: false,
+			antialias: false,
+			depth: false,
+		});
+
+		const resize = () => {
+			canvas.width = document.body.clientWidth;
+			canvas.height = Math.ceil(canvas.width * pixelHeight / pixelWidth);
+			gl.viewport(0, 0, canvas.width, canvas.height);
+		};
+
+		const totalFrames = images.length - 5;
+		let currentFrame = -1;
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		const texture = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		const texArgs = [gl.TEXTURE_2D, 0, gl.RGBA, pixelWidth, pixelHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE];
+
+		const changeFrame = (incr = 1) => {
+			currentFrame = (((currentFrame + incr) % totalFrames) + totalFrames) % totalFrames;
+			gl.texImage2D(...texArgs, images[currentFrame]);
+			console.log("Current frame:", currentFrame);
+		};
+
+		const vertShader = gl.createShader(gl.VERTEX_SHADER);
+		gl.shaderSource(vertShader, `
+			attribute vec2 aPos;
+			uniform vec2 uSize;
+
+			varying vec2 vUV;
+
+			void main() {
+				vec2 aspectRatio = vec2(1.0, uSize.x / uSize.y);
+				vUV = (aPos * aspectRatio) * 0.5 + 0.5;
+				gl_Position = vec4(aPos * aspectRatio, 0.0, 1.0);
+			}
+		`);
+		gl.compileShader(vertShader);
+		console.log("vert compiled:", gl.getShaderParameter(vertShader, gl.COMPILE_STATUS), gl.getShaderInfoLog(vertShader));
+
+		const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+		gl.shaderSource(fragShader, `
+			precision highp float;
+			#define PI 3.14159265359
+			varying vec2 vUV;
+			uniform vec2 uSize;
+			// TODO: "lerp smoothing is broken" https://www.youtube.com/watch?v=LSNQuFEDOyQ
+			uniform sampler2D uSampler;
+
+			highp float randomFloat( vec2 uv ) {
+				const highp float a = 12.9898, b = 78.233, c = 43758.5453;
+				highp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );
+				return fract(sin(sn) * c);
+			}
+
+			void main() {
+				vec2 aspectRatio = vec2(1.0, uSize.x / uSize.y);
+				vec3 color = texture2D(uSampler, vUV).rgb;
+
+				vec2 pixel = abs(fract(vUV * uSize) - 0.5) * 2.0;
+				float cover = clamp(1.0 - pow(max(pixel.x, pixel.y), 10.0), 0.0, 1.0);
+				float speckle = randomFloat(vUV);
+
+				gl_FragColor = vec4(
+					mix(vec3(0.8, 0.9, 0.8), color, cover) *
+					mix(0.7, 1.0, speckle) +
+					mix(0.0, 0.4, pow(speckle, 6.0)),
+					1.0
+				);
+			}
+		`);
+		gl.compileShader(fragShader);
+		console.log("frag compiled:", gl.getShaderParameter(fragShader, gl.COMPILE_STATUS), gl.getShaderInfoLog(fragShader));
+
+		const program = gl.createProgram();
+		gl.attachShader(program, vertShader);
+		gl.attachShader(program, fragShader);
+		gl.linkProgram(program);
+		console.log("program linked:", gl.getProgramParameter(program, gl.LINK_STATUS));
+
+		const posBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+		gl.bufferData(
+			gl.ARRAY_BUFFER,
+			new Float32Array([
+				[1,  1], [-1,  1], [ 1, -1], [-1, -1]
+			].flat()),
+			gl.STATIC_DRAW
+		);
+
+		const aPosLocation = gl.getAttribLocation(program, "aPos");
+		const uSizeLocation = gl.getUniformLocation(program, "uSize");
+		const uSamplerLocation = gl.getUniformLocation(program, "uSampler");
+
+		const update = (now) => {
+
+			// TODO: voltage pass
+
+			// render pass
+			gl.useProgram(program);
+			gl.enableVertexAttribArray(aPosLocation);
+			gl.uniform2fv(uSizeLocation, [pixelWidth, pixelHeight]);
+			gl.uniform1i(uSamplerLocation, 0);
+			gl.vertexAttribPointer(aPosLocation, 2, gl.FLOAT, false, 0, 0);
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+			gl.disableVertexAttribArray(aPosLocation);
+
+			requestAnimationFrame(update);
+		};
+
+		window.addEventListener("resize", resize);
+		document.addEventListener("keydown", ({repeat, code}) => {
+			if (repeat) {
+				return;
+			}
+			switch (code) {
+				case "ArrowLeft":
+				case "ArrowUp": {
+					changeFrame(-1);
+					break;
+				}
+				case "ArrowRight":
+				case "ArrowDown": {
+					changeFrame(1);
+					break;
+				}
+			}
+		});
+		changeFrame();
+		resize();
+		update();
+
+	</script>
+</body>
+</html>
