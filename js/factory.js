@@ -13,20 +13,24 @@ const createGLCanvas = ({ extensions: extensionNames, resize: resizeFunc }) => {
 	const extensions = Object.fromEntries(extensionNames.map((ext) => [ext, gl.getExtension(ext)]));
 	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
+	let [width, height] = [1, 1];
+
 	const resize = () => {
-		const [width, height] = resizeFunc();
-		canvas.width = width;
-		canvas.height = height;
-		gl.viewport(0, 0, width, height);
+		const newSize = resizeFunc();
+		[width, height] = newSize;
+		[canvas.width, canvas.height] = newSize;
 	};
+
+	const getSize = () => [width, height];
 
 	window.addEventListener("resize", resize);
 	resize();
 
-	return { canvas, gl, extensions, resize };
+	return { canvas, gl, extensions, resize, getSize };
 };
 
-const createTexture = ({ gl }, { width, height, pixelate: isPixelated, float: isFloat }) => {
+const createTexture = ({ gl, extensions }, params) => {
+	const { width, height, pixelate: isPixelated, float: isFloat } = params;
 	const texture = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -34,17 +38,65 @@ const createTexture = ({ gl }, { width, height, pixelate: isPixelated, float: is
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, isPixelated ? gl.NEAREST : gl.LINEAR);
 
-	// TODO: isFloat
-	const texArgs = [gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE];
+	const internalFormat = isFloat ? extensions.OES_texture_half_float.HALF_FLOAT_OES : gl.UNSIGNED_BYTE;
+	const texArgs = [gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, internalFormat];
 	const upload = (data) => {
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 		gl.texImage2D(...texArgs, data);
 	};
 
+	upload();
+
 	return {
+		...params,
+		// internalFormat,
 		texture,
 		upload,
 	};
+};
+
+const createRenderTarget = (context, params) => {
+	const { gl } = context;
+	const { width, height } = params;
+
+	let { texture: front } = createTexture(context, params);
+	let { texture: back } = createTexture(context, params);
+	let isOn = false;
+
+	const framebuffer = gl.createFramebuffer();
+
+	const update = () => {
+		if (isOn) {
+			gl.viewport(0, 0, width, height);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, back, 0);
+		} else {
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		}
+	};
+
+	const toggle = (on) => {
+		isOn = on;
+		update();
+	};
+
+	const swap = () => {
+		[front, back] = [back, front];
+		update();
+	};
+
+	update();
+
+	const renderTarget = {
+		...params,
+		framebuffer,
+		toggle,
+		swap,
+	};
+
+	Object.defineProperty(renderTarget, "texture", { get: () => front });
+
+	return renderTarget;
 };
 
 const createProgram = ({ gl }, { vertex: vertSource, fragment: fragSource }) => {
@@ -59,8 +111,9 @@ const createProgram = ({ gl }, { vertex: vertSource, fragment: fragSource }) => 
 	gl.attachShader(program, vertShader);
 	gl.attachShader(program, fragShader);
 	gl.linkProgram(program);
+	const built = gl.getProgramParameter(program, gl.LINK_STATUS);
 
-	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+	if (!built) {
 		console.warn("link failed", gl.getProgramInfoLog(program));
 		console.warn("vert info-log", gl.getShaderInfoLog(vertShader));
 		console.warn("frag info-log", gl.getShaderInfoLog(fragShader));
@@ -102,6 +155,7 @@ const createProgram = ({ gl }, { vertex: vertSource, fragment: fragSource }) => 
 		uniforms,
 		attributes,
 		locations,
+		built,
 	};
 };
 
@@ -123,10 +177,14 @@ const createQuad = ({ gl }) => {
 	return buffer;
 };
 
-const createPass = (context, { init, load, update }) => {
-	const pass = { ...context, ...init(context) };
-	const ready = (load == null ? Promise.resolve() : load(pass)).then(() => pass);
-	return { ready, update: update == null ? (_) => _ : (now) => update(pass, now) };
+const createPass = (context, { init, load, update: updateFunc }) => {
+	const pass = {
+		...context,
+		...init(context),
+		update: updateFunc == null ? (_) => _ : (now) => updateFunc(pass, now),
+	};
+	pass.ready = load == null ? Promise.resolve() : load(pass);
+	return pass;
 };
 
-export { createGLCanvas, createTexture, createProgram, createQuad, createPass, halfFloatExtensions };
+export { createGLCanvas, createTexture, createRenderTarget, createProgram, createQuad, createPass, halfFloatExtensions };

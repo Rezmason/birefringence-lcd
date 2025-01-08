@@ -12,10 +12,11 @@ const context = createGLCanvas({
 	},
 });
 
-const renderPass = createRenderPass(context);
+const voltPass = createVoltPass(context);
+const renderPass = createRenderPass(context, voltPass.renderTarget);
 
 const update = (now) => {
-	// TODO: voltage pass
+	voltPass.update(now);
 	renderPass.update(now);
 	requestAnimationFrame(update);
 };
