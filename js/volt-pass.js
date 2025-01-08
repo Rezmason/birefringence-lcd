@@ -9,6 +9,10 @@ export default (context) =>
 
 			const renderTarget = createRenderTarget(context, { width, height, pixelate: true, float: true });
 
+			renderTarget.upload(
+				new Uint16Array(width * height * 4).map((_, i) => (i % 4 === 3 ? 0xbc00 /* -1 */ : 0x3c00) /* 1 */), // TODO: remove once color is implemented
+			);
+
 			const quad = createQuad(context);
 
 			const program = createProgram(context, {
@@ -30,8 +34,6 @@ export default (context) =>
 							uniform sampler2D uStateSampler;
 
 							void main() {
-								float oldVoltage = texture2D(uStateSampler, vUV).a;
-
 								vec3 goal = texture2D(uImageSampler, vUV).rgb;
 								float goalVoltage = 0.0;
 								bool r = goal.r > 0.0;
@@ -44,18 +46,24 @@ export default (context) =>
 								float redVoltage = 2.2;
 								float whiteVoltage = 2.5;
 
-								float blend = 0.5;
-
 								if (g) { goalVoltage = greenVoltage; }
 								if (b) { goalVoltage = blueVoltage; }
 								if (r) { goalVoltage = redVoltage; }
 								if (w) { goalVoltage = whiteVoltage; }
 
+								float oldVoltage = texture2D(uStateSampler, vUV).a;
+
+								// TODO: remove once color is implemented
+								if (oldVoltage == -1.0) {
+									oldVoltage = whiteVoltage;
+								}
 
 								float voltage = mix(oldVoltage, goalVoltage, 0.09);
 
+								// TODO: map voltage to color
 								vec3 color = vec3(
-									smoothstep(0.0, 2.5, voltage)
+									// smoothstep(0.0, 2.5, voltage)
+									voltage / whiteVoltage
 								);
 
 								gl_FragColor = vec4(color, voltage);

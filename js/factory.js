@@ -59,9 +59,14 @@ const createRenderTarget = (context, params) => {
 	const { gl } = context;
 	const { width, height } = params;
 
-	let { texture: front } = createTexture(context, params);
-	let { texture: back } = createTexture(context, params);
+	let { texture: front, upload: upload1 } = createTexture(context, params);
+	let { texture: back, upload: upload2 } = createTexture(context, params);
 	let isOn = false;
+
+	const upload = (data) => {
+		upload1(data);
+		upload2(data);
+	};
 
 	const framebuffer = gl.createFramebuffer();
 
@@ -92,6 +97,7 @@ const createRenderTarget = (context, params) => {
 		framebuffer,
 		toggle,
 		swap,
+		upload,
 	};
 
 	Object.defineProperty(renderTarget, "texture", { get: () => front });
