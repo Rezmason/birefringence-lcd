@@ -10,7 +10,12 @@ export default (context) =>
 			const renderTarget = createRenderTarget(context, { width, height, pixelate: true, float: true });
 
 			renderTarget.upload(
-				new Uint16Array(width * height * 4).map((_, i) => (i % 4 === 3 ? 0xbc00 /* -1 */ : 0x3c00) /* 1 */), // TODO: remove once color is implemented
+				new Uint16Array(width * height * 4).map(
+					(_, i) =>
+						i % 4 === 3
+							? 0xbc00 //  -1
+							: 0x3c00, //  1
+				),
 			);
 
 			const quad = createQuad(context);
@@ -29,9 +34,16 @@ export default (context) =>
 							precision highp float;
 							#define PI 3.14159265359
 							varying vec2 vUV;
-							// TODO: "lerp smoothing is broken" https://www.youtube.com/watch?v=LSNQuFEDOyQ
-							uniform sampler2D uImageSampler;
+
+							uniform float uTime, uDeltaTime;
 							uniform sampler2D uStateSampler;
+							uniform sampler2D uImageSampler;
+
+							highp float randomFloat( vec2 uv ) {
+								const highp float a = 12.9898, b = 78.233, c = 43758.5453;
+								highp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );
+								return fract(sin(sn) * c);
+							}
 
 							void main() {
 								vec3 goal = texture2D(uImageSampler, vUV).rgb;
@@ -41,9 +53,9 @@ export default (context) =>
 								bool b = goal.b > 0.0;
 								bool w = r && g && b;
 
-								float greenVoltage = 1.0;
-								float blueVoltage = 1.5;
-								float redVoltage = 2.2;
+								float greenVoltage = 0.0;
+								float blueVoltage  = 1.3;
+								float redVoltage   = 2.2;
 								float whiteVoltage = 2.5;
 
 								if (g) { goalVoltage = greenVoltage; }
@@ -51,22 +63,53 @@ export default (context) =>
 								if (r) { goalVoltage = redVoltage; }
 								if (w) { goalVoltage = whiteVoltage; }
 
-								float oldVoltage = texture2D(uStateSampler, vUV).a;
+								float halfFloatPrecisionFix = 10.0;
+								float oldVoltage = texture2D(uStateSampler, vUV).a * halfFloatPrecisionFix;
 
-								// TODO: remove once color is implemented
-								if (oldVoltage == -1.0) {
+								if (oldVoltage < 0.0) {
 									oldVoltage = whiteVoltage;
 								}
 
-								float voltage = mix(oldVoltage, goalVoltage, 0.09);
+								// TODO: frame independent lerp, new mix(old, goal, 1.0 - pow(r, uDeltaTime))
+								float rate = 0.11;
+								float voltage = mix(oldVoltage, goalVoltage, rate);
+								voltage = mix(oldVoltage, voltage, mix(0.7, 1.0, randomFloat(vUV)));
 
-								// TODO: map voltage to color
-								vec3 color = vec3(
-									// smoothstep(0.0, 2.5, voltage)
-									voltage / whiteVoltage
+								// voltage = vUV.x * (whiteVoltage - greenVoltage) + greenVoltage;
+
+								float greenHue = 127.7 +   5.0;
+								float  blueHue = 265.9 +  -3.0;
+								float   redHue = 312.2 +  63.0;
+								float whiteHue = 312.2 + 100.0;
+
+								float hue = greenHue;
+								hue += smoothstep(greenVoltage,  blueVoltage, voltage) * ( blueHue - greenHue);
+								hue += smoothstep( blueVoltage,   redVoltage, voltage) * (  redHue -  blueHue);
+								hue += smoothstep(  redVoltage, whiteVoltage, voltage) * (whiteHue -  redHue);
+
+								float saturation = mix(1.0, 0.0, smoothstep(mix(redVoltage, whiteVoltage, 0.75), whiteVoltage, voltage));
+
+								float turquoiseVoltage = mix(greenVoltage,   blueVoltage, 0.75);
+								float    purpleVoltage = mix( blueVoltage,    redVoltage, 0.50);
+								float  darkBlueVoltage = mix( blueVoltage, purpleVoltage, 0.50);
+
+								float reflectance =
+									// 4.0 +
+									// mix(6.0, 0.0, smoothstep(turquoiseVoltage, darkBlueVoltage, voltage)) +
+									// mix(0.0, 7.0, smoothstep(purpleVoltage, whiteVoltage, voltage))
+
+									mix(0.5, 0.0, smoothstep(turquoiseVoltage, darkBlueVoltage, voltage)) +
+									mix(0.0, 0.85, smoothstep(mix(purpleVoltage, redVoltage, 0.4), whiteVoltage, voltage))
+								;
+
+								float lightness = mix(0.2, 1.0, reflectance);
+
+								gl_FragColor = vec4(
+									hue,
+									saturation,
+									lightness,
+									voltage / halfFloatPrecisionFix
 								);
-
-								gl_FragColor = vec4(color, voltage);
 							}
 						`,
 			});
@@ -116,23 +159,29 @@ export default (context) =>
 				return;
 			}
 
-			gl.useProgram(program.program);
+			const deltaTime = pass.lastTime == null ? 0 : now - pass.lastTime;
+			pass.lastTime = now;
 
-			gl.activeTexture(gl.TEXTURE0);
-			gl.bindTexture(gl.TEXTURE_2D, imageTexture.texture);
+			gl.useProgram(program.program);
 
 			renderTarget.swap();
 			renderTarget.toggle(true);
 
-			gl.activeTexture(gl.TEXTURE1);
+			gl.activeTexture(gl.TEXTURE0);
 			gl.bindTexture(gl.TEXTURE_2D, renderTarget.texture);
+
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, imageTexture.texture);
 
 			gl.bindBuffer(gl.ARRAY_BUFFER, quad);
 			gl.vertexAttribPointer(program.locations.aPos, 2, gl.FLOAT, false, 0, 0);
 
 			// gl.uniform2f(program.locations.uSize, width, height);
-			gl.uniform1i(program.locations.uImageSampler, 0);
-			gl.uniform1i(program.locations.uStateSampler, 1);
+			gl.uniform1i(program.locations.uStateSampler, 0);
+			gl.uniform1i(program.locations.uImageSampler, 1);
+
+			gl.uniform1f(program.locations.uTime, now);
+			gl.uniform1f(program.locations.uDeltaTime, deltaTime);
 
 			gl.enableVertexAttribArray(program.locations.aPos);
 			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

@@ -1,6 +1,9 @@
 import { frameWidth, frameHeight, loadImages } from "./data.js";
 import { createTexture, createProgram, createQuad, createPass } from "./factory.js";
 
+const hsluv = await fetch("./lib/hsluv-glsl.fsh").then((r) => r.text());
+const snoise = await fetch("./lib/snoise2d.glsl").then((r) => r.text());
+
 export default (context, inputRenderTarget) =>
 	createPass(context, {
 		init: (context) => {
@@ -22,9 +25,14 @@ export default (context, inputRenderTarget) =>
 				fragment: `
 							precision highp float;
 							#define PI 3.14159265359
+
 							varying vec2 vUV;
 							uniform vec2 uSize;
 							uniform sampler2D uSampler;
+
+							${hsluv}
+
+							${snoise}
 
 							highp float randomFloat( vec2 uv ) {
 								const highp float a = 12.9898, b = 78.233, c = 43758.5453;
@@ -33,20 +41,32 @@ export default (context, inputRenderTarget) =>
 							}
 
 							void main() {
+
 								vec2 aspectRatio = vec2(1.0, uSize.x / uSize.y);
-								vec3 color = texture2D(uSampler, vUV).rgb;
 
+								vec3 color1 = texture2D(uSampler, vUV).xyz;
 								vec2 pixel = abs(fract(vUV * uSize) - 0.5) * 2.0;
-								float cover = clamp(1.0 - pow(max(pixel.x, pixel.y), 10.0), 0.0, 1.0);
-								float speckle = randomFloat(vUV);
+								float cover1 = clamp(0.9 - pow(max(pixel.x, pixel.y), 15.0), 0.6, 1.0);
 
-								vec3 screenTint = vec3(0.6, 0.7, 0.7);
-								normalize(screenTint);
+								vec2 shadowUV = vUV + vec2(0.0, 0.02);
+								vec3 color2 = texture2D(uSampler, shadowUV).xyz;
+								float cover2 = clamp(0.0, 1.0, 0.7 * pow(fract(shadowUV * uSize + 0.01).y, 0.9));
+
+								vec2 shiftUV = vUV * 2.0 - 1.0;
+								float shift = clamp(abs(shiftUV.x - shiftUV.y) - 1.5, 0.0, 1.0);
+								color1.z += shift * 0.4;
+								color2.z += shift * 0.4;
+
+								float speckle = mix(-0.1, 0.2, randomFloat(vUV)) + snoise(vUV * uSize * 4.0) * 0.1;
+								speckle = mix(0.0, speckle, (color1.z - 0.5) * 2.0);
+								color1.z += speckle;
+								color2.z += speckle;
 
 								gl_FragColor = vec4(
-									mix(vec3(0.8), color, cover) * screenTint *
-									mix(0.7, 1.0, speckle) +
-									mix(0.0, 0.4, pow(speckle, 6.0)),
+									min(
+										mix(vec3(0.8), hsluvToRgb(color1 * vec3(1.0, 100.0, 100.0)), cover1),
+										mix(vec3(1.0), hsluvToRgb(color2 * vec3(1.0, 100.0, 100.0)), cover2)
+									),
 									1.0
 								);
 							}
