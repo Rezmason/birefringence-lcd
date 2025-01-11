@@ -45,12 +45,15 @@ export default (context, inputRenderTarget) =>
 								vec2 aspectRatio = vec2(1.0, uSize.x / uSize.y);
 
 								vec3 color1 = texture2D(uSampler, vUV).xyz;
-								vec2 pixel = abs(fract(vUV * uSize) - 0.5) * 2.0;
-								float cover1 = clamp(0.9 - pow(max(pixel.x, pixel.y), 15.0), 0.6, 1.0);
+								vec2 pixel1 = abs(fract(vUV * uSize) - 0.5) * 2.0;
+								float cover1 = clamp(0.9 - pow(max(pixel1.x, pixel1.y), 15.0), 0.6, 1.0);
 
-								vec2 shadowUV = vUV + vec2(0.0, 0.02);
+								vec2 shadowUV = vUV + vec2(0.003, -0.006);
 								vec3 color2 = texture2D(uSampler, shadowUV).xyz;
-								float cover2 = clamp(0.0, 1.0, 0.7 * pow(fract(shadowUV * uSize + 0.01).y, 0.9));
+								// float cover2 = clamp(0.0, 1.0, 0.7 * pow(fract(shadowUV * uSize + 0.01).y, 0.9));
+								vec2 pixel2 = fract(shadowUV * uSize);
+								pixel2.x = 1.0 - pixel2.x;
+								float cover2 = mix(0.7, 0.0, clamp(1.4 * (max(pixel2.x, pixel2.y) - 0.7), 0.0, 1.0));
 
 								vec2 shiftUV = vUV * 2.0 - 1.0;
 								float shift = clamp(abs(shiftUV.x - shiftUV.y) - 1.5, 0.0, 1.0);
@@ -59,8 +62,10 @@ export default (context, inputRenderTarget) =>
 
 								float speckle = mix(-0.1, 0.2, randomFloat(vUV)) + snoise(vUV * uSize * 4.0) * 0.1;
 								speckle = mix(0.0, speckle, (color1.z - 0.5) * 2.0);
-								color1.z += speckle;
+								color1.z += speckle * mix(1.0, 0.4, color1.y);
 								color2.z += speckle;
+
+								color1.z *= mix(0.7, 1.0, vUV.x + (1.0 - vUV.y));
 
 								gl_FragColor = vec4(
 									min(

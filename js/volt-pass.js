@@ -77,7 +77,7 @@ export default (context) =>
 
 								// voltage = vUV.x * (whiteVoltage - greenVoltage) + greenVoltage;
 
-								float greenHue = 127.7 +   5.0;
+								float greenHue = 127.7 +  16.0;
 								float  blueHue = 265.9 +  -3.0;
 								float   redHue = 312.2 +  63.0;
 								float whiteHue = 312.2 + 100.0;
@@ -94,15 +94,14 @@ export default (context) =>
 								float  darkBlueVoltage = mix( blueVoltage, purpleVoltage, 0.50);
 
 								float reflectance =
-									// 4.0 +
-									// mix(6.0, 0.0, smoothstep(turquoiseVoltage, darkBlueVoltage, voltage)) +
-									// mix(0.0, 7.0, smoothstep(purpleVoltage, whiteVoltage, voltage))
+									4.0 +
+									mix(6.0, 0.0, smoothstep(turquoiseVoltage, darkBlueVoltage, voltage)) +
+									mix(0.0, 7.0, smoothstep(purpleVoltage, whiteVoltage, voltage));
+								reflectance /= 11.0;
 
-									mix(0.5, 0.0, smoothstep(turquoiseVoltage, darkBlueVoltage, voltage)) +
-									mix(0.0, 0.85, smoothstep(mix(purpleVoltage, redVoltage, 0.4), whiteVoltage, voltage))
-								;
+								float whiteScatter = smoothstep(redVoltage, whiteVoltage, voltage);
 
-								float lightness = mix(0.2, 1.0, reflectance);
+								float lightness = mix(0.0, 1.0, reflectance * 0.6 + whiteScatter * 0.25);
 
 								gl_FragColor = vec4(
 									hue,

@@ -12,6 +12,8 @@ const context = createGLCanvas({
 	},
 });
 
+// context.gl.drawingBufferColorSpace = "display-p3"; // fun but maybe irrelevant
+
 const voltPass = createVoltPass(context);
 const renderPass = createRenderPass(context, voltPass.renderTarget);
 
