@@ -187,7 +187,7 @@ const createPass = (context, { init, load, update: updateFunc }) => {
 	const pass = {
 		...context,
 		...init(context),
-		update: updateFunc == null ? (_) => _ : (now) => updateFunc(pass, now),
+		update: updateFunc == null ? (_) => _ : (timeMs) => updateFunc(pass, timeMs == null ? 0 : timeMs / 1000),
 	};
 	pass.ready = load == null ? Promise.resolve() : load(pass);
 	return pass;

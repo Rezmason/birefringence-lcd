@@ -53,10 +53,16 @@ export default (context) =>
 								bool b = goal.b > 0.0;
 								bool w = r && g && b;
 
-								float greenVoltage = 0.0;
-								float blueVoltage  = 1.3;
-								float redVoltage   = 2.2;
-								float whiteVoltage = 2.5;
+								float greenVoltage = 1.0;
+								float blueVoltage  = 2.3;
+								float redVoltage   = 3.2;
+								float whiteVoltage = 3.5;
+
+								float    orangeVoltage = mix(  redVoltage,  whiteVoltage, 0.50);
+								float turquoiseVoltage = mix(greenVoltage,   blueVoltage, 0.75);
+								float    purpleVoltage = mix( blueVoltage,    redVoltage, 0.50);
+								float  darkBlueVoltage = mix( blueVoltage, purpleVoltage, 0.50);
+
 
 								if (g) { goalVoltage = greenVoltage; }
 								if (b) { goalVoltage = blueVoltage; }
@@ -70,8 +76,11 @@ export default (context) =>
 									oldVoltage = whiteVoltage;
 								}
 
-								float rate = 0.03 + randomFloat(vUV) * 0.02;
-								float voltage = mix(oldVoltage, goalVoltage, 1.0 - exp(-rate * uDeltaTime * 0.2));
+								float rate = mix(0.03, 0.04, randomFloat(vUV));
+								float voltage = mix(oldVoltage, goalVoltage, 1.0 - exp(-rate * uDeltaTime * 200.0));
+
+								float powerUp = mix(0.05, 1.0, clamp(pow(uTime, 2.0) / 2.0, 0.0, 1.0));
+								voltage = mix(oldVoltage, voltage, powerUp);
 
 								// voltage = vUV.x * (whiteVoltage - greenVoltage) + greenVoltage;
 
@@ -86,10 +95,6 @@ export default (context) =>
 								hue += smoothstep(  redVoltage, whiteVoltage, voltage) * (whiteHue -  redHue);
 
 								float saturation = mix(1.0, 0.0, smoothstep(mix(redVoltage, whiteVoltage, 0.5), whiteVoltage, voltage));
-
-								float turquoiseVoltage = mix(greenVoltage,   blueVoltage, 0.75);
-								float    purpleVoltage = mix( blueVoltage,    redVoltage, 0.50);
-								float  darkBlueVoltage = mix( blueVoltage, purpleVoltage, 0.50);
 
 								float reflectance =
 									4.0 +
@@ -149,15 +154,15 @@ export default (context) =>
 				}
 			});
 		},
-		update: (pass, now) => {
+		update: (pass, time) => {
 			const { gl, imageTexture, renderTarget, program, quad } = pass;
 
 			if (!program.built) {
 				return;
 			}
 
-			const deltaTime = pass.lastTime == null ? 0 : now - pass.lastTime;
-			pass.lastTime = now;
+			const deltaTime = pass.lastTime == null ? 0 : time - pass.lastTime;
+			pass.lastTime = time;
 
 			gl.useProgram(program.program);
 
@@ -177,7 +182,7 @@ export default (context) =>
 			gl.uniform1i(program.locations.uStateSampler, 0);
 			gl.uniform1i(program.locations.uImageSampler, 1);
 
-			gl.uniform1f(program.locations.uTime, now);
+			gl.uniform1f(program.locations.uTime, time);
 			gl.uniform1f(program.locations.uDeltaTime, deltaTime);
 
 			gl.enableVertexAttribArray(program.locations.aPos);

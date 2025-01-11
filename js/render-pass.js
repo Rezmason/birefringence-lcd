@@ -69,7 +69,7 @@ export default (context, inputRenderTarget) =>
 
 								gl_FragColor = vec4(
 									min(
-										mix(vec3(0.8), hsluvToRgb(color1 * vec3(1.0, 100.0, 100.0)), cover1),
+										mix(vec3(0.6, 0.7, 0.6), hsluvToRgb(color1 * vec3(1.0, 100.0, 100.0)), cover1),
 										mix(vec3(1.0), hsluvToRgb(color2 * vec3(1.0, 100.0, 100.0)), cover2)
 									) * shine,
 									1.0
@@ -83,7 +83,7 @@ export default (context, inputRenderTarget) =>
 				quad,
 			};
 		},
-		update: (pass, now) => {
+		update: (pass, time) => {
 			const { gl, getSize, program, quad } = pass;
 
 			if (!program.built) {
