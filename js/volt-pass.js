@@ -70,10 +70,8 @@ export default (context) =>
 									oldVoltage = whiteVoltage;
 								}
 
-								// TODO: frame independent lerp, new mix(old, goal, 1.0 - pow(r, uDeltaTime))
-								float rate = 0.11;
-								float voltage = mix(oldVoltage, goalVoltage, rate);
-								voltage = mix(oldVoltage, voltage, mix(0.7, 1.0, randomFloat(vUV)));
+								float rate = 0.03 + randomFloat(vUV) * 0.02;
+								float voltage = mix(oldVoltage, goalVoltage, 1.0 - exp(-rate * uDeltaTime * 0.2));
 
 								// voltage = vUV.x * (whiteVoltage - greenVoltage) + greenVoltage;
 
