@@ -53,7 +53,7 @@ export default (context, inputRenderTarget) =>
 								// float cover2 = clamp(0.0, 1.0, 0.7 * pow(fract(shadowUV * uSize + 0.01).y, 0.9));
 								vec2 pixel2 = fract(shadowUV * uSize);
 								pixel2.x = 1.0 - pixel2.x;
-								float cover2 = mix(0.7, 0.0, clamp(1.4 * (max(pixel2.x, pixel2.y) - 0.7), 0.0, 1.0));
+								float cover2 = mix(0.9, 0.0, clamp(1.4 * (max(pixel2.x, pixel2.y) - 0.5), 0.0, 1.0));
 
 								vec2 shiftUV = vUV * 2.0 - 1.0;
 								float shift = clamp(abs(shiftUV.x - shiftUV.y) - 1.5, 0.0, 1.0);
