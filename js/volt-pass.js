@@ -77,17 +77,17 @@ export default (context) =>
 
 								// voltage = vUV.x * (whiteVoltage - greenVoltage) + greenVoltage;
 
-								float greenHue = 127.7 +  16.0;
-								float  blueHue = 265.9 +  -3.0;
-								float   redHue = 312.2 +  63.0;
-								float whiteHue = 312.2 + 100.0;
+								float greenHue = 127.7 + 16.0;
+								float  blueHue = 265.9 + -3.0;
+								float   redHue = 312.2 + 63.0;
+								float whiteHue = 312.2 + 80.0;
 
 								float hue = greenHue;
 								hue += smoothstep(greenVoltage,  blueVoltage, voltage) * ( blueHue - greenHue);
 								hue += smoothstep( blueVoltage,   redVoltage, voltage) * (  redHue -  blueHue);
 								hue += smoothstep(  redVoltage, whiteVoltage, voltage) * (whiteHue -  redHue);
 
-								float saturation = mix(1.0, 0.0, smoothstep(mix(redVoltage, whiteVoltage, 0.75), whiteVoltage, voltage));
+								float saturation = mix(1.0, 0.0, smoothstep(mix(redVoltage, whiteVoltage, 0.5), whiteVoltage, voltage));
 
 								float turquoiseVoltage = mix(greenVoltage,   blueVoltage, 0.75);
 								float    purpleVoltage = mix( blueVoltage,    redVoltage, 0.50);
