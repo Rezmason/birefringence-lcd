@@ -1,8 +1,10 @@
 const halfFloatExtensions = ["OES_texture_half_float", "OES_texture_half_float_linear", "EXT_color_buffer_half_float", "WEBGL_color_buffer_float"];
 
-const createGLCanvas = ({ extensions: extensionNames, resize: resizeFunc }) => {
-	const canvas = document.createElement("canvas");
-	document.body.append(canvas);
+const createGLCanvas = ({ extensions: extensionNames, resize: resizeFunc, canvas }) => {
+	if (canvas == null) {
+		canvas = document.createElement("canvas");
+		document.body.append(canvas);
+	}
 
 	const gl = canvas.getContext("webgl", {
 		alpha: false,

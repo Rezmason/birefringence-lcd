@@ -4,6 +4,7 @@ import createRenderPass from "./render-pass.js";
 import createVoltPass from "./volt-pass.js";
 
 const context = createGLCanvas({
+	canvas: document.querySelector("canvas"),
 	extensions: [...halfFloatExtensions],
 	resize: () => {
 		const width = document.body.clientWidth;

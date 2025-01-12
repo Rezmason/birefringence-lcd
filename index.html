@@ -4,15 +4,21 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>Liquid Twystal Display</title>
-	</head>
-	<body>
 		<style type="text/css">
+			@font-face {
+				font-family: "Michroma Regular";
+				src: url("assets/fonts/michroma/Michroma-Regular.woff2") format("woff2");
+			}
+
 			html,
 			body {
 				height: 100%;
 				overflow: hidden;
 				margin: 0;
 				background: black;
+				color: white;
+				font-family: sans-serif;
+				font-size: 14pt;
 			}
 
 			body {
@@ -24,7 +30,82 @@
 			canvas {
 				width: 100%;
 			}
+
+			dialog h2 {
+				font-family:
+					Michroma Regular,
+					sans-serif;
+				margin-top: 0;
+				text-transform: uppercase;
+				text-align: center;
+			}
+
+			dialog.photosensitivity-warning {
+				background: hsl(0deg 0% 20%);
+				border-radius: 1.5em;
+				box-shadow:
+					0 1em 0.6em hsla(0deg 0% 0% / 0.4),
+					inset 0 -0.4em 0.25em 0.7em hsl(0deg 0% 10%);
+				max-width: 50vw;
+				font-size: max(12pt, 1vmax);
+				text-align: justify;
+				color: white;
+				padding: 2em;
+				border: none;
+			}
+
+			dialog form[method="dialog"] {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 2em;
+			}
+
+			dialog form[method="dialog"] button {
+				background: hsl(0deg 90% 60%);
+				box-shadow:
+					0 0.4em 0.6em hsla(0deg 0% 0% / 0.7),
+					inset 0 -0.4em 0.1em 0em hsl(0deg 90% 20%),
+					inset 0 -0.4em 0.4em 0.7em hsl(0deg 90% 70%);
+				border-radius: 0.5em;
+				border: none;
+				font-size: 1em;
+				padding: 0.2em 2em 0.6em;
+				color: white;
+				text-shadow:
+					hsl(0deg 60% 60%) 0 0.2em 0.1em,
+					hsl(0deg 60% 60%) 0 0.2em 0.1em;
+				font-weight: bold;
+			}
+
+			dialog form[method="dialog"] button:active {
+				background: hsl(0deg 90% 60%);
+				box-shadow:
+					0 0.4em 0.6em hsla(0deg 0% 0% / 0.7),
+					inset 0 -0.2em 0.1em 0em hsl(0deg 90% 20%),
+					inset 0 -0.2em 0.4em 0.7em hsl(0deg 90% 70%);
+				margin: 0.2em 0;
+				padding: 0.2em 2em 0.4em;
+			}
 		</style>
+	</head>
+	<body>
+		<canvas></canvas>
+		<dialog class="photosensitivity-warning" open>
+			<h2>
+				<span style="font-size: 2.5em; vertical-align: middle">⚠︎</span>
+				Photosensitive seizure warning
+			</h2>
+			<p>
+				A very small percentage of people may experience a seizure when exposed to certain visual images, including flashing lights or patterns that may appear
+				in cool websites. If you or any of your relatives have a history of seizures or epilepsy, consult a doctor before continuing. Immediately stop and
+				consult a doctor if you experience any symptoms such as lightheadedness, disorientation, or twitching.
+			</p>
+			<p>Also, occasionally I go overboard with CSS.</p>
+			<form method="dialog">
+				<button>OK</button>
+			</form>
+		</dialog>
 		<script type="module" src="js/main.js"></script>
 	</body>
 </html>
