@@ -121,6 +121,7 @@ export default (context) =>
 				renderTarget,
 				program,
 				quad,
+				changeFrame: () => {},
 			};
 		},
 		load: async (pass) => {
@@ -129,30 +130,12 @@ export default (context) =>
 			const totalFrames = images.length - 5;
 
 			let currentFrame = -1;
-			const changeFrame = (incr = 1) => {
+			pass.changeFrame = (incr = 1) => {
 				currentFrame = (((currentFrame + incr) % totalFrames) + totalFrames) % totalFrames;
 				imageTexture.upload(images[currentFrame]);
 				console.log("Current frame:", currentFrame);
 			};
-			changeFrame();
-
-			document.addEventListener("keydown", ({ repeat, code }) => {
-				if (repeat) {
-					return;
-				}
-				switch (code) {
-					case "ArrowLeft":
-					case "ArrowUp": {
-						changeFrame(-1);
-						break;
-					}
-					case "ArrowRight":
-					case "ArrowDown": {
-						changeFrame(1);
-						break;
-					}
-				}
-			});
+			pass.changeFrame();
 		},
 		update: (pass, time) => {
 			const { gl, imageTexture, renderTarget, program, quad } = pass;
