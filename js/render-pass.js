@@ -90,18 +90,16 @@ export default (context, inputRenderTarget) =>
 				return;
 			}
 
-			gl.useProgram(program.program);
-
 			gl.viewport(0, 0, ...getSize());
+			program.use();
+			gl.uniform2f(program.locations.uSize, frameWidth, frameHeight);
 
-			gl.activeTexture(gl.TEXTURE0);
-			gl.bindTexture(gl.TEXTURE_2D, inputRenderTarget.texture);
+			gl.uniform1i(program.locations.uSampler, 0);
+			gl.activeTexture(gl.TEXTURE0 + 0);
+			gl.bindTexture(gl.TEXTURE_2D, inputRenderTarget.glTexture);
 
 			gl.bindBuffer(gl.ARRAY_BUFFER, quad);
 			gl.vertexAttribPointer(program.locations.aPos, 2, gl.FLOAT, false, 0, 0);
-
-			gl.uniform2f(program.locations.uSize, frameWidth, frameHeight);
-			gl.uniform1i(program.locations.uSampler, 0);
 
 			gl.enableVertexAttribArray(program.locations.aPos);
 			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

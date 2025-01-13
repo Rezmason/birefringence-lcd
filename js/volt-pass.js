@@ -147,26 +147,22 @@ export default (context) =>
 			const deltaTime = pass.lastTime == null ? 0 : time - pass.lastTime;
 			pass.lastTime = time;
 
-			gl.useProgram(program.program);
-
 			renderTarget.swap();
 			renderTarget.toggle(true);
+			program.use();
+			gl.uniform1f(program.locations.uTime, time);
+			gl.uniform1f(program.locations.uDeltaTime, deltaTime);
 
+			gl.uniform1i(program.locations.uStateSampler, 0);
 			gl.activeTexture(gl.TEXTURE0);
-			gl.bindTexture(gl.TEXTURE_2D, renderTarget.texture);
+			gl.bindTexture(gl.TEXTURE_2D, renderTarget.glTexture);
 
+			gl.uniform1i(program.locations.uImageSampler, 1);
 			gl.activeTexture(gl.TEXTURE1);
-			gl.bindTexture(gl.TEXTURE_2D, imageTexture.texture);
+			gl.bindTexture(gl.TEXTURE_2D, imageTexture.glTexture);
 
 			gl.bindBuffer(gl.ARRAY_BUFFER, quad);
 			gl.vertexAttribPointer(program.locations.aPos, 2, gl.FLOAT, false, 0, 0);
-
-			// gl.uniform2f(program.locations.uSize, width, height);
-			gl.uniform1i(program.locations.uStateSampler, 0);
-			gl.uniform1i(program.locations.uImageSampler, 1);
-
-			gl.uniform1f(program.locations.uTime, time);
-			gl.uniform1f(program.locations.uDeltaTime, deltaTime);
 
 			gl.enableVertexAttribArray(program.locations.aPos);
 			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

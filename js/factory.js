@@ -3,7 +3,6 @@ const halfFloatExtensions = ["OES_texture_half_float", "OES_texture_half_float_l
 const createGLCanvas = ({ extensions: extensionNames, resize: resizeFunc, canvas }) => {
 	if (canvas == null) {
 		canvas = document.createElement("canvas");
-		document.body.append(canvas);
 	}
 
 	const gl = canvas.getContext("webgl", {
@@ -33,8 +32,8 @@ const createGLCanvas = ({ extensions: extensionNames, resize: resizeFunc, canvas
 
 const createTexture = ({ gl, extensions }, params) => {
 	const { width, height, pixelate: isPixelated, float: isFloat } = params;
-	const texture = gl.createTexture();
-	gl.bindTexture(gl.TEXTURE_2D, texture);
+	const glTexture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, glTexture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -43,7 +42,7 @@ const createTexture = ({ gl, extensions }, params) => {
 	const internalFormat = isFloat ? extensions.OES_texture_half_float.HALF_FLOAT_OES : gl.UNSIGNED_BYTE;
 	const texArgs = [gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, internalFormat];
 	const upload = (data) => {
-		gl.bindTexture(gl.TEXTURE_2D, texture);
+		gl.bindTexture(gl.TEXTURE_2D, glTexture);
 		gl.texImage2D(...texArgs, data);
 	};
 
@@ -52,7 +51,7 @@ const createTexture = ({ gl, extensions }, params) => {
 	return {
 		...params,
 		// internalFormat,
-		texture,
+		glTexture,
 		upload,
 	};
 };
@@ -61,8 +60,8 @@ const createRenderTarget = (context, params) => {
 	const { gl } = context;
 	const { width, height } = params;
 
-	let { texture: front, upload: upload1 } = createTexture(context, params);
-	let { texture: back, upload: upload2 } = createTexture(context, params);
+	let { glTexture: front, upload: upload1 } = createTexture(context, params);
+	let { glTexture: back, upload: upload2 } = createTexture(context, params);
 	let isOn = false;
 
 	const upload = (data) => {
@@ -70,12 +69,12 @@ const createRenderTarget = (context, params) => {
 		upload2(data);
 	};
 
-	const framebuffer = gl.createFramebuffer();
+	const glFramebuffer = gl.createFramebuffer();
 
 	const update = () => {
 		if (isOn) {
 			gl.viewport(0, 0, width, height);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, glFramebuffer);
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, back, 0);
 		} else {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -96,54 +95,52 @@ const createRenderTarget = (context, params) => {
 
 	const renderTarget = {
 		...params,
-		framebuffer,
+		glFramebuffer,
 		toggle,
 		swap,
 		upload,
 	};
 
-	Object.defineProperty(renderTarget, "texture", { get: () => front });
+	Object.defineProperty(renderTarget, "glTexture", { get: () => front });
 
 	return renderTarget;
 };
 
 const createProgram = ({ gl }, { vertex: vertSource, fragment: fragSource }) => {
-	const vertShader = gl.createShader(gl.VERTEX_SHADER);
-	gl.shaderSource(vertShader, vertSource);
-	gl.compileShader(vertShader);
-	const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-	gl.shaderSource(fragShader, fragSource);
-	gl.compileShader(fragShader);
+	const glVertShader = gl.createShader(gl.VERTEX_SHADER);
+	gl.shaderSource(glVertShader, vertSource);
+	gl.compileShader(glVertShader);
+	const glFragShader = gl.createShader(gl.FRAGMENT_SHADER);
+	gl.shaderSource(glFragShader, fragSource);
+	gl.compileShader(glFragShader);
 
-	const program = gl.createProgram();
-	gl.attachShader(program, vertShader);
-	gl.attachShader(program, fragShader);
-	gl.linkProgram(program);
-	const built = gl.getProgramParameter(program, gl.LINK_STATUS);
+	const glProgram = gl.createProgram();
+	gl.attachShader(glProgram, glVertShader);
+	gl.attachShader(glProgram, glFragShader);
+	gl.linkProgram(glProgram);
+	const built = gl.getProgramParameter(glProgram, gl.LINK_STATUS);
 
 	if (!built) {
-		console.warn("link failed", gl.getProgramInfoLog(program));
-		console.warn("vert info-log", gl.getShaderInfoLog(vertShader));
-		console.warn("frag info-log", gl.getShaderInfoLog(fragShader));
+		console.warn("link failed", gl.getProgramInfoLog(glProgram));
+		console.warn("vert info-log", gl.getShaderInfoLog(glVertShader));
+		console.warn("frag info-log", gl.getShaderInfoLog(glFragShader));
 	}
 
-	gl.useProgram(program.program); // TODO: necessary?
-
 	const uniforms = Object.fromEntries(
-		[...Array(gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS)).keys()]
-			.map((i) => gl.getActiveUniform(program, i))
+		[...Array(gl.getProgramParameter(glProgram, gl.ACTIVE_UNIFORMS)).keys()]
+			.map((i) => gl.getActiveUniform(glProgram, i))
 			.map((uniform) => [
 				uniform.name,
 				{
 					uniform,
-					location: gl.getUniformLocation(program, uniform.name),
+					location: gl.getUniformLocation(glProgram, uniform.name),
 				},
 			]),
 	);
 
 	const attributes = Object.fromEntries(
-		[...Array(gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES)).keys()]
-			.map((i) => gl.getActiveAttrib(program, i))
+		[...Array(gl.getProgramParameter(glProgram, gl.ACTIVE_ATTRIBUTES)).keys()]
+			.map((i) => gl.getActiveAttrib(glProgram, i))
 			.map((attrib, location) => [
 				attrib.name,
 				{
@@ -158,8 +155,13 @@ const createProgram = ({ gl }, { vertex: vertSource, fragment: fragSource }) => 
 		...Object.fromEntries(Object.entries(attributes).map(([name, { location }]) => [name, location])),
 	};
 
+	const use = () => {
+		gl.useProgram(glProgram);
+	}
+
 	return {
-		program,
+		glProgram,
+		use,
 		uniforms,
 		attributes,
 		locations,
@@ -168,8 +170,8 @@ const createProgram = ({ gl }, { vertex: vertSource, fragment: fragSource }) => 
 };
 
 const createQuad = ({ gl }) => {
-	const buffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	const glBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, glBuffer);
 	gl.bufferData(
 		gl.ARRAY_BUFFER,
 		new Float32Array(
@@ -182,7 +184,7 @@ const createQuad = ({ gl }) => {
 		),
 		gl.STATIC_DRAW,
 	);
-	return buffer;
+	return glBuffer;
 };
 
 const createPass = (context, { init, load, update: updateFunc }) => {
