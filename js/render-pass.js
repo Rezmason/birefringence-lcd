@@ -62,8 +62,8 @@ export default (context, inputRenderTarget) =>
 
 								float speckle = mix(-0.1, 0.2, randomFloat(vUV)) + snoise(vUV * uSize * 4.0) * 0.1;
 								speckle = mix(0.0, speckle, (color1.z - 0.5) * 2.0);
-								color1.z += speckle * mix(1.0, 0.4, color1.y);
-								color2.z += speckle;
+								color1.z += speckle * mix(0.4, 0.3, color1.y);
+								color2.z += speckle * mix(0.0, 0.2, color1.y);
 
 								float shine = mix(0.7, 1.0, vUV.x + (1.0 - vUV.y));
 
