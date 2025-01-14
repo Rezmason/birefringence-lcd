@@ -157,7 +157,7 @@ const createProgram = ({ gl }, { vertex: vertSource, fragment: fragSource }) => 
 
 	const use = () => {
 		gl.useProgram(glProgram);
-	}
+	};
 
 	return {
 		glProgram,

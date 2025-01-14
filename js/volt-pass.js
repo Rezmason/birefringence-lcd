@@ -1,6 +1,8 @@
 import { frameWidth as width, frameHeight as height, loadImages } from "./data.js";
 import { createTexture, createRenderTarget, createProgram, createQuad, createPass } from "./factory.js";
 
+const [voltage] = await Promise.all(["./lib/voltage.glsl"].map((url) => fetch(url).then((r) => r.text())));
+
 export default (context) =>
 	createPass(context, {
 		init: (context) => {
@@ -39,6 +41,8 @@ export default (context) =>
 							uniform sampler2D uStateSampler;
 							uniform sampler2D uImageSampler;
 
+							${voltage}
+
 							highp float randomFloat( vec2 uv ) {
 								const highp float a = 12.9898, b = 78.233, c = 43758.5453;
 								highp float dt = dot( uv.xy, vec2( a,b ) ), sn = mod( dt, PI );
@@ -53,28 +57,12 @@ export default (context) =>
 								bool b = goal.b > 0.0;
 								bool w = r && g && b;
 
-								float greenVoltage = 1.0;
-								float blueVoltage  = 2.3;
-								float redVoltage   = 3.2;
-								float whiteVoltage = 3.5;
-
-								float    orangeVoltage = mix(  redVoltage,  whiteVoltage, 0.50);
-								float turquoiseVoltage = mix(greenVoltage,   blueVoltage, 0.75);
-								float    purpleVoltage = mix( blueVoltage,    redVoltage, 0.50);
-								float  darkBlueVoltage = mix( blueVoltage, purpleVoltage, 0.50);
-
-
 								if (g) { goalVoltage = greenVoltage; }
 								if (b) { goalVoltage = blueVoltage; }
 								if (r) { goalVoltage = redVoltage; }
 								if (w) { goalVoltage = whiteVoltage; }
 
-								float halfFloatPrecisionFix = 10.0;
-								float oldVoltage = texture2D(uStateSampler, vUV).a * halfFloatPrecisionFix;
-
-								if (oldVoltage < 0.0) {
-									oldVoltage = whiteVoltage;
-								}
+								float oldVoltage = loadVoltage(texture2D(uStateSampler, vUV).a);
 
 								float rate = mix(0.03, 0.04, randomFloat(vUV));
 								float voltage = mix(oldVoltage, goalVoltage, 1.0 - exp(-rate * uDeltaTime * 200.0));
@@ -84,34 +72,9 @@ export default (context) =>
 
 								// voltage = vUV.x * (whiteVoltage - greenVoltage) + greenVoltage;
 
-								float greenHue = 127.7 + 16.0;
-								float  blueHue = 265.9 + -3.0;
-								float   redHue = 312.2 + 63.0;
-								float whiteHue = 312.2 + 80.0;
+								vec3 hsl = voltage2HSLuv(voltage);
 
-								float hue = greenHue;
-								hue += smoothstep(greenVoltage,  blueVoltage, voltage) * ( blueHue - greenHue);
-								hue += smoothstep( blueVoltage,   redVoltage, voltage) * (  redHue -  blueHue);
-								hue += smoothstep(  redVoltage, whiteVoltage, voltage) * (whiteHue -  redHue);
-
-								float saturation = mix(1.0, 0.0, smoothstep(mix(redVoltage, whiteVoltage, 0.5), whiteVoltage, voltage));
-
-								float reflectance =
-									4.0 +
-									mix(6.0, 0.0, smoothstep(turquoiseVoltage, darkBlueVoltage, voltage)) +
-									mix(0.0, 7.0, smoothstep(purpleVoltage, whiteVoltage, voltage));
-								reflectance /= 11.0;
-
-								float whiteScatter = smoothstep(redVoltage, whiteVoltage, voltage);
-
-								float lightness = mix(0.0, 1.0, reflectance * 0.6 + whiteScatter * 0.25);
-
-								gl_FragColor = vec4(
-									hue,
-									saturation,
-									lightness,
-									voltage / halfFloatPrecisionFix
-								);
+								gl_FragColor = vec4(hsl, storeVoltage(voltage));
 							}
 						`,
 			});

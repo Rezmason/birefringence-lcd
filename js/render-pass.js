@@ -1,8 +1,9 @@
 import { frameWidth, frameHeight, loadImages } from "./data.js";
 import { createTexture, createProgram, createQuad, createPass } from "./factory.js";
 
-const hsluv = await fetch("./lib/hsluv-glsl.fsh").then((r) => r.text());
-const snoise = await fetch("./lib/snoise2d.glsl").then((r) => r.text());
+const [hsluv, snoise, voltage] = await Promise.all(
+	["./lib/hsluv-glsl.fsh", "./lib/snoise2d.glsl", "./lib/voltage.glsl"].map((url) => fetch(url).then((r) => r.text())),
+);
 
 export default (context, inputRenderTarget) =>
 	createPass(context, {
@@ -30,8 +31,8 @@ export default (context, inputRenderTarget) =>
 							uniform vec2 uSize;
 							uniform sampler2D uSampler;
 
+							${voltage}
 							${hsluv}
-
 							${snoise}
 
 							highp float randomFloat( vec2 uv ) {
@@ -44,12 +45,12 @@ export default (context, inputRenderTarget) =>
 
 								vec2 aspectRatio = vec2(1.0, uSize.x / uSize.y);
 
-								vec3 color1 = texture2D(uSampler, vUV).xyz;
+								vec3 color1 = voltage2HSLuv(loadVoltage(texture2D(uSampler, vUV).w));
 								vec2 pixel1 = abs(fract(vUV * uSize) - 0.5) * 2.0;
 								float cover1 = clamp(0.9 - pow(max(pixel1.x, pixel1.y), 20.0), 0.75, 1.0);
 
 								vec2 shadowUV = vUV + vec2(0.003, -0.006);
-								vec3 color2 = texture2D(uSampler, shadowUV).xyz;
+								vec3 color2 = voltage2HSLuv(loadVoltage(texture2D(uSampler, shadowUV).w));
 								// float cover2 = clamp(0.0, 1.0, 0.7 * pow(fract(shadowUV * uSize + 0.01).y, 0.9));
 								vec2 pixel2 = fract(shadowUV * uSize);
 								pixel2.x = 1.0 - pixel2.x;
