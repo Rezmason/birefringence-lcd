@@ -13,12 +13,12 @@ export default (context, inputRenderTarget) =>
 			const program = createProgram(context, {
 				vertex: `
 							attribute vec2 aPos;
-							uniform vec2 uSize;
+							uniform vec2 uFrameSize;
 
 							varying vec2 vUV;
 
 							void main() {
-								vec2 aspectRatio = vec2(1.0, uSize.x / uSize.y);
+								vec2 aspectRatio = vec2(1.0, uFrameSize.x / uFrameSize.y);
 								vUV = (aPos * aspectRatio) * 0.5 + 0.5;
 								gl_Position = vec4(aPos * aspectRatio, 0.0, 1.0);
 							}
@@ -28,7 +28,7 @@ export default (context, inputRenderTarget) =>
 							#define PI 3.14159265359
 
 							varying vec2 vUV;
-							uniform vec2 uSize;
+							uniform vec2 uFrameSize;
 							uniform sampler2D uSampler;
 
 							${voltage}
@@ -43,16 +43,15 @@ export default (context, inputRenderTarget) =>
 
 							void main() {
 
-								vec2 aspectRatio = vec2(1.0, uSize.x / uSize.y);
-
-								vec3 color1 = voltage2HSLuv(loadVoltage(texture2D(uSampler, vUV).w));
-								vec2 pixel1 = abs(fract(vUV * uSize) - 0.5) * 2.0;
+								vec2 nearestNeighborUV = floor(vUV * uFrameSize) / uFrameSize;
+								vec3 color1 = voltage2HSLuv(loadVoltage(texture2D(uSampler, nearestNeighborUV).w));
+								vec2 pixel1 = abs(fract(vUV * uFrameSize) - 0.5) * 2.0;
 								float cover1 = clamp(0.9 - pow(max(pixel1.x, pixel1.y), 20.0), 0.75, 1.0);
 
 								vec2 shadowUV = vUV + vec2(0.003, -0.006);
-								vec3 color2 = voltage2HSLuv(loadVoltage(texture2D(uSampler, shadowUV).w));
-								// float cover2 = clamp(0.0, 1.0, 0.7 * pow(fract(shadowUV * uSize + 0.01).y, 0.9));
-								vec2 pixel2 = fract(shadowUV * uSize);
+								vec2 nearestNeighborShadowUV = floor(shadowUV * uFrameSize) / uFrameSize;
+								vec3 color2 = voltage2HSLuv(loadVoltage(texture2D(uSampler, nearestNeighborShadowUV).w));
+								vec2 pixel2 = fract(shadowUV * uFrameSize);
 								pixel2.x = 1.0 - pixel2.x;
 								float cover2 = mix(0.9, 0.0, clamp(1.4 * (max(pixel2.x, pixel2.y) - 0.5), 0.0, 1.0));
 
@@ -61,7 +60,7 @@ export default (context, inputRenderTarget) =>
 								color1 += shift * 0.4;
 								color2 += shift * 0.4;
 
-								float speckle = mix(-0.1, 0.2, randomFloat(vUV)) + snoise(vUV * uSize * 4.0) * 0.1;
+								float speckle = mix(-0.1, 0.2, randomFloat(vUV)) + snoise(vUV * uFrameSize * 4.0) * 0.1;
 								speckle = mix(0.0, speckle, (color1.z - 0.5) * 2.0);
 								color1.z += speckle * mix(0.4, 0.3, color1.y);
 								color2.z += speckle * mix(0.0, 0.2, color1.y);
@@ -93,7 +92,7 @@ export default (context, inputRenderTarget) =>
 
 			gl.viewport(0, 0, ...getSize());
 			program.use();
-			gl.uniform2f(program.locations.uSize, frameWidth, frameHeight);
+			gl.uniform2f(program.locations.uFrameSize, frameWidth, frameHeight);
 
 			gl.uniform1i(program.locations.uSampler, 0);
 			gl.activeTexture(gl.TEXTURE0 + 0);
