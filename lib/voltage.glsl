@@ -26,6 +26,14 @@ float storeVoltage(float voltage) {
 	return voltage / halfFloatPrecisionFix;
 }
 
+float bendVoltage(float voltage, vec2 uv) {
+	uv = pow(abs(uv - 0.5) * 2.0, vec2(10.0));
+	float bendStrength = uv.x * smoothstep(orangeVoltage, greenVoltage, voltage);
+	float bentVoltage = -bendStrength + voltage;
+
+	return bentVoltage;
+}
+
 vec3 voltage2HSLuv(float voltage) {
 
 	float hue = greenHue;

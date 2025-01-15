@@ -44,13 +44,20 @@ export default (context, inputRenderTarget) =>
 							void main() {
 
 								vec2 nearestNeighborUV = floor(vUV * uFrameSize) / uFrameSize;
-								vec3 color1 = voltage2HSLuv(loadVoltage(texture2D(uSampler, nearestNeighborUV).w));
+								vec3 color1 = voltage2HSLuv(bendVoltage(
+									loadVoltage(texture2D(uSampler, nearestNeighborUV).w),
+									vUV
+								));
 								vec2 pixel1 = abs(fract(vUV * uFrameSize) - 0.5) * 2.0;
 								float cover1 = clamp(0.9 - pow(max(pixel1.x, pixel1.y), 20.0), 0.75, 1.0);
 
 								vec2 shadowUV = vUV + vec2(0.003, -0.006);
+								float shadowVoltageOffset = abs(shadowUV.x - 0.5) * 0.025;
 								vec2 nearestNeighborShadowUV = floor(shadowUV * uFrameSize) / uFrameSize;
-								vec3 color2 = voltage2HSLuv(loadVoltage(texture2D(uSampler, nearestNeighborShadowUV).w));
+								vec3 color2 = voltage2HSLuv(bendVoltage(
+									loadVoltage(texture2D(uSampler,  nearestNeighborShadowUV).w),
+									shadowUV
+								));
 								vec2 pixel2 = fract(shadowUV * uFrameSize);
 								pixel2.x = 1.0 - pixel2.x;
 								float cover2 = mix(0.9, 0.0, clamp(1.4 * (max(pixel2.x, pixel2.y) - 0.5), 0.0, 1.0));
@@ -65,13 +72,15 @@ export default (context, inputRenderTarget) =>
 								color1.z += speckle * mix(0.4, 0.3, color1.y);
 								color2.z += speckle * mix(0.0, 0.2, color1.y);
 
-								float shine = mix(0.7, 1.0, vUV.x + (1.0 - vUV.y));
+								float shine = 0.0 * (vUV.x + (1.0 - vUV.y));
+								color1.z += shine;
+								color2.z += shine;
 
 								gl_FragColor = vec4(
 									min(
 										mix(vec3(0.6, 0.7, 0.6), hsluvToRgb(color1 * vec3(1.0, 100.0, 100.0)), cover1),
 										mix(vec3(1.0), hsluvToRgb(color2 * vec3(1.0, 100.0, 100.0)), cover2)
-									) * shine,
+									),
 									1.0
 								);
 							}
