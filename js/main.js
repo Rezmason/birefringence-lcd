@@ -1,7 +1,9 @@
-import { frameAspect } from "./data.js";
+import { frameWidth, frameHeight, frameAspect } from "./data.js";
 import { halfFloatExtensions, createGLCanvas } from "./factory.js";
 import createRenderPass from "./render-pass.js";
 import createVoltPass from "./volt-pass.js";
+import { update as updateLife } from "./demos/conway-life.js";
+import { update as updateGlobe } from "./demos/globe.js";
 
 const photosensitivityWarning = document.querySelector("dialog.photosensitivity-warning");
 
@@ -32,6 +34,17 @@ let interactive = false;
 let animating = false;
 let animationStart;
 
+/*
+let demo = updateLife;
+demo = updateGlobe;
+
+(async () => {
+	while (demo != null) {
+		voltPass.blit(await demo());
+	}
+})();
+*/
+
 const update = (now) => {
 	if (animating) {
 		if (animationStart == null) {
@@ -60,12 +73,12 @@ document.addEventListener("keydown", ({ repeat, code }) => {
 	switch (code) {
 		case "ArrowLeft":
 		case "ArrowUp": {
-			voltPass.changeFrame(-1);
+			voltPass.changeSlide(-1);
 			break;
 		}
 		case "ArrowRight":
 		case "ArrowDown": {
-			voltPass.changeFrame(1);
+			voltPass.changeSlide(1);
 			break;
 		}
 	}

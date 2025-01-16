@@ -1,0 +1,44 @@
+Screen border in render pass
+frame it in a fake device
+Screen dimensions
+
+UI
+	shift speed
+	"scene select"
+		loop data
+	play/pause
+	playback speed
+
+Graphics
+	Spiral
+	Continuous voltage mode
+		Continuous spiral
+		Ripples
+		Plasma
+		Still grayscale with purple-to-white reflectance range
+	Truchet
+	Qix, moire pattern
+	Hilbert, space filling curve
+	Bouncing balls
+	Voronoi bouncing balls
+	NOVA display
+	Timed motion that leverages gradient
+
+	Text with the original font
+		The supported characters are listed in the manual "CSF5550_OM_CASIO_EN_text.pdf"
+		EFIGS
+		math
+		SUPER電子手帳
+		CJK?
+	https://www.tiktok.com/@rozoken/video/6981953361780280581
+
+mathematical voltage-to-chromaticity function
+
+Tuning and refinement
+	Adjust timing, try to match the timing in the video
+		Make some observations first
+
+Elephant! Gazelles!
+	https://youtu.be/Bu7e5PcKwXw?t=87
+B&W: fish parade and airport
+	https://www.youtube.com/watch?v=FfpUD_g0hsk

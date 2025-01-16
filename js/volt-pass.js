@@ -79,26 +79,48 @@ export default (context) =>
 						`,
 			});
 
-			return {
+			const bytes = new Uint8ClampedArray(width * height * 4);
+
+			const blits = [
+				[0xff, 0xff, 0xff, 0xff],
+				[0xff, 0x00, 0x00, 0x00],
+				[0x00, 0x00, 0xff, 0x00],
+				[0x00, 0xff, 0x00, 0x00],
+			];
+
+			const pass = {
 				imageTexture,
 				renderTarget,
 				program,
 				quad,
-				changeFrame: () => {},
+				blitFunc: (n) => {
+					let result = blits[n];
+					if (result == null) {
+						result = blits[Math.floor(Math.random() * 4)];
+					}
+					return result;
+				},
+				changeSlide: () => {},
+				setBlitFunc: (f) => (pass.blitFunc = f),
+				blit: (image) => {
+					bytes.set(image.flat().map(pass.blitFunc).flat(), 0);
+					imageTexture.upload(bytes);
+				},
 			};
+
+			return pass;
 		},
 		load: async (pass) => {
 			const { imageTexture } = pass;
 			const images = await loadImages();
 			const totalFrames = images.length - 5;
-
 			let currentFrame = -1;
-			pass.changeFrame = (incr = 1) => {
+			pass.changeSlide = (incr = 1) => {
 				currentFrame = (((currentFrame + incr) % totalFrames) + totalFrames) % totalFrames;
 				imageTexture.upload(images[currentFrame]);
 				console.log("Current frame:", currentFrame);
 			};
-			pass.changeFrame();
+			pass.changeSlide();
 		},
 		update: (pass, time) => {
 			const { gl, imageTexture, renderTarget, program, quad } = pass;
