@@ -13,14 +13,23 @@ export default (context, inputRenderTarget) =>
 			const program = createProgram(context, {
 				vertex: `
 							attribute vec2 aPos;
-							uniform vec2 uFrameSize;
+							uniform vec2 uFrameSize, uSize;
 
 							varying vec2 vUV;
 
 							void main() {
-								vec2 aspectRatio = vec2(1.0, uFrameSize.x / uFrameSize.y);
-								vUV = (aPos * aspectRatio) * 0.5 + 0.5;
-								gl_Position = vec4(aPos * aspectRatio, 0.0, 1.0);
+								vUV = (aPos + 1.0) * 0.5;
+
+								// float viewportAspectRatio = uSize.x / uSize.y;
+								// float frameAspectRatio = uFrameSize.x / uFrameSize.y;
+								vec2 scale = vec2(1.0);
+								// if (viewportAspectRatio > frameAspectRatio) {
+								// 	scale.x = frameAspectRatio / viewportAspectRatio;
+								// } else {
+								// 	scale.y = viewportAspectRatio / frameAspectRatio;
+								// }
+
+								gl_Position = vec4(aPos * scale, 0.0, 1.0);
 							}
 						`,
 				fragment: `
@@ -99,9 +108,11 @@ export default (context, inputRenderTarget) =>
 				return;
 			}
 
-			gl.viewport(0, 0, ...getSize());
+			const size = getSize();
+			gl.viewport(0, 0, ...size);
 			program.use();
 			gl.uniform2f(program.locations.uFrameSize, frameWidth, frameHeight);
+			gl.uniform2f(program.locations.uSize, ...size);
 
 			gl.uniform1i(program.locations.uSampler, 0);
 			gl.activeTexture(gl.TEXTURE0 + 0);
