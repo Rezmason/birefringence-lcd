@@ -1,24 +1,15 @@
+import createDemo from "./demo.js";
 import { frameWidth, frameHeight } from "../data.js";
 
-let [front, back, image] = Array(3)
-	.fill()
-	.map(() =>
-		Array(frameHeight)
-			.fill()
-			.map(() => Array(frameWidth).fill(0)),
-	);
-
-const randomize = () => {
+const randomize = (back) => {
 	back.forEach((row) => row.forEach((_, i) => (row[i] = Math.random() < 0.5 ? Math.ceil(Math.random() * 100) : 0)));
 };
-randomize();
 
 const colorIndices = [0, 2, 8, 15];
 
-const update = async () => {
+const step = (front, back, image) => {
 	const skewX = Math.floor(frameWidth / 3);
 	const skewY = Math.floor(frameHeight / 3);
-	[front, back] = [back, front];
 	let numChanged = 0;
 	for (let i = 0; i < frameHeight; i++) {
 		const up = i === 0 ? frameHeight - 1 : i - 1;
@@ -65,10 +56,43 @@ const update = async () => {
 		}
 	}
 	if (numChanged === 0) {
-		randomize();
+		randomize(back);
 	}
-	await new Promise((resolve) => setTimeout(resolve, 35 + Math.min(70, 0.1 * numChanged)));
-	return image;
+	return numChanged;
 };
 
-export { randomize, update, image };
+export default () => {
+	let timeout = null;
+	let postFrame = null;
+
+	const start = (f) => {
+		postFrame = f;
+		update();
+	};
+
+	const stop = () => {
+		postFrame = null;
+		clearTimeout(timeout);
+		timeout = null;
+	};
+
+	let [front, back, image] = Array(3)
+		.fill()
+		.map(() =>
+			Array(frameHeight)
+				.fill()
+				.map(() => Array(frameWidth).fill(0)),
+		);
+
+	randomize(back);
+
+	const update = () => {
+		clearTimeout(timeout);
+		[front, back] = [back, front];
+		const numChanged = step(front, back, image);
+		postFrame(image);
+		timeout = setTimeout(update, 35 + Math.min(70, 0.1 * numChanged));
+	};
+
+	return createDemo(start, stop);
+};

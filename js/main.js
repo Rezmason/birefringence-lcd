@@ -2,8 +2,9 @@ import { frameWidth, frameHeight, frameAspect } from "./data.js";
 import { halfFloatExtensions, createGLCanvas } from "./factory.js";
 import createRenderPass from "./render-pass.js";
 import createVoltPass from "./volt-pass.js";
-import { update as updateLife } from "./demos/conway-life.js";
-import { update as updateGlobe } from "./demos/globe.js";
+import createLifeDemo from "./demos/conway-life.js";
+import createGlobeDemo from "./demos/globe.js";
+import createSlideshowDemo from "./demos/slideshow.js";
 
 const photosensitivityWarning = document.querySelector("dialog.photosensitivity-warning");
 
@@ -34,21 +35,19 @@ let interactive = false;
 let animating = false;
 let animationStart;
 
-/*
-let demo = updateLife;
-demo = updateGlobe;
-
-(async () => {
-	while (demo != null) {
-		voltPass.blit(await demo());
-	}
-})();
-*/
+let demoIndex = 0;
+const slideshowDemo = createSlideshowDemo();
+const demos = [slideshowDemo, createLifeDemo(), createGlobeDemo()];
+demos[demoIndex].start();
 
 const update = (now) => {
 	if (animating) {
 		if (animationStart == null) {
 			animationStart = now;
+		}
+		const imageBytes = demos[demoIndex].getNextFrame();
+		if (imageBytes != null) {
+			voltPass.blit(imageBytes);
 		}
 		if (i === 0) {
 			render(now - animationStart);
@@ -73,13 +72,18 @@ document.addEventListener("keydown", ({ repeat, code }) => {
 	switch (code) {
 		case "ArrowLeft":
 		case "ArrowUp": {
-			voltPass.changeSlide(-1);
+			slideshowDemo.changeSlide(-1);
 			break;
 		}
 		case "ArrowRight":
 		case "ArrowDown": {
-			voltPass.changeSlide(1);
+			slideshowDemo.changeSlide(1);
 			break;
+		}
+		case "Space": {
+			demos[demoIndex].stop();
+			demoIndex = (demoIndex + 1) % demos.length;
+			demos[demoIndex].start();
 		}
 	}
 });

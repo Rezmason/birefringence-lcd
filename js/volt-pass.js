@@ -1,4 +1,4 @@
-import { frameWidth as width, frameHeight as height, loadImages } from "./data.js";
+import { frameWidth as width, frameHeight as height } from "./data.js";
 import { createTexture, createRenderTarget, createProgram, createQuad, createPass } from "./factory.js";
 
 const [voltage] = await Promise.all(["./lib/voltage.glsl"].map((url) => fetch(url).then((r) => r.text())));
@@ -100,27 +100,18 @@ export default (context) =>
 					}
 					return result;
 				},
-				changeSlide: () => {},
 				setBlitFunc: (f) => (pass.blitFunc = f),
 				blit: (image) => {
-					bytes.set(image.flat().map(pass.blitFunc).flat(), 0);
+					if (Array.isArray(image)) {
+						bytes.set(image.flat().map(pass.blitFunc).flat(), 0);
+					} else {
+						bytes.set(image, 0);
+					}
 					imageTexture.upload(bytes);
 				},
 			};
 
 			return pass;
-		},
-		load: async (pass) => {
-			const { imageTexture } = pass;
-			const images = await loadImages();
-			const totalFrames = images.length - 5;
-			let currentFrame = -1;
-			pass.changeSlide = (incr = 1) => {
-				currentFrame = (((currentFrame + incr) % totalFrames) + totalFrames) % totalFrames;
-				imageTexture.upload(images[currentFrame]);
-				console.log("Current frame:", currentFrame);
-			};
-			pass.changeSlide();
 		},
 		update: (pass, time) => {
 			const { gl, imageTexture, renderTarget, program, quad } = pass;

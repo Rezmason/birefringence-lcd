@@ -1,3 +1,4 @@
+import createDemo from "./demo.js";
 import { frameWidth, frameHeight } from "../data.js";
 
 const mod = (n, d) => ((n % d) + d) % d;
@@ -115,45 +116,61 @@ const image = Array(frameHeight)
 	.fill()
 	.map(() => Array(frameWidth).fill(0));
 
-let scroll = 0;
+export default () => {
+	let scroll = 0;
+	let animationFrameRequest = null;
+	let postFrame = null;
 
-const update = async () => {
-	scroll += -0.05;
-	// image.forEach(row => row.forEach((_, i) => row[i] = Math.floor(Math.random() * 4)));
+	const start = (f) => {
+		postFrame = f;
+		update(0);
+	};
 
-	const centerX = Math.floor((frameWidth - globeDiameter) / 2);
-	for (let i = 0; i < frameHeight; i++) {
-		for (let j = 0; j < frameWidth; j++) {
-			const value = Math.random() < 0.3 ? 1 : 2;
-			image[i][j] = value;
+	const stop = () => {
+		cancelAnimationFrame(animationFrameRequest);
+		animationFrameRequest = null;
+	};
+
+	const update = (time) => {
+		scroll = -0.002 * time;
+
+		const centerX = Math.floor((frameWidth - globeDiameter) / 2);
+		for (let i = 0; i < frameHeight; i++) {
+			for (let j = 0; j < frameWidth; j++) {
+				const value = Math.random() < 0.3 ? 1 : 2;
+				image[i][j] = value;
+			}
 		}
-	}
 
-	for (const [y, x] of stars) {
-		const starX = Math.floor(mod(x + scroll, frameWidth));
-		image[y][starX] = 0;
-		image[y][(starX + 1) % frameWidth] = 0;
-	}
-
-	for (let i = 0; i < frameHeight; i++) {
-		for (let j = 0; j < globeDiameter; j++) {
-			const long = globeUVs[i][j];
-			if (long === -1) {
-				continue;
-			}
-			const x = Math.floor(mod(long + scroll, globeImageWidth));
-			let value = globeImage[Math.floor((i * (globeDiameter / globeImageWidth + 1)) / 2) + 6][x];
-			if (image[i][j + centerX] === 3 && value === 2) {
-				value = 0;
-			}
-			if (Math.random() * long > globeImageWidth / 3) {
-				value = 0;
-			}
-			image[i][j + centerX] = value;
+		for (const [y, x] of stars) {
+			const starX = Math.floor(mod(x + scroll, frameWidth));
+			image[y][starX] = 0;
+			image[y][(starX + 1) % frameWidth] = 0;
 		}
-	}
-	await new Promise((resolve) => requestAnimationFrame(resolve));
-	return image;
+
+		for (let i = 0; i < frameHeight; i++) {
+			for (let j = 0; j < globeDiameter; j++) {
+				const long = globeUVs[i][j];
+				if (long === -1) {
+					continue;
+				}
+				const x = Math.floor(mod(long + scroll, globeImageWidth));
+				let value = globeImage[Math.floor((i * (globeDiameter / globeImageWidth + 1)) / 2) + 6][x];
+				if (image[i][j + centerX] === 3 && value === 2) {
+					value = 0;
+				}
+				if (Math.random() * long > globeImageWidth / 3) {
+					value = 0;
+				}
+				image[i][j + centerX] = value;
+			}
+		}
+
+		if (postFrame != null) {
+			postFrame(image);
+		}
+		animationFrameRequest = requestAnimationFrame(update);
+	};
+
+	return createDemo(start, stop);
 };
-
-export { update, image };

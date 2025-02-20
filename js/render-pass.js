@@ -1,4 +1,4 @@
-import { frameWidth, frameHeight, loadImages } from "./data.js";
+import { frameWidth, frameHeight } from "./data.js";
 import { createTexture, createProgram, createQuad, createPass } from "./factory.js";
 
 const [hsluv, snoise, voltage] = await Promise.all(
