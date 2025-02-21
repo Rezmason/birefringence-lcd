@@ -1,11 +1,11 @@
-import { frameWidth as width, frameHeight as height } from "./data.js";
 import { createTexture, createRenderTarget, createProgram, createQuad, createPass } from "./factory.js";
 
 const [voltage] = await Promise.all(["./lib/voltage.glsl"].map((url) => fetch(url).then((r) => r.text())));
 
-export default (context) =>
+export default (context, initialDisplaySize) =>
 	createPass(context, {
 		init: (context) => {
+			const [width, height] = initialDisplaySize;
 			const imageTexture = createTexture(context, { width, height, pixelate: true });
 			imageTexture.upload(new Uint8Array(width * height * 4).fill(0xff));
 
@@ -79,8 +79,6 @@ export default (context) =>
 						`,
 			});
 
-			const bytes = new Uint8ClampedArray(width * height * 4);
-
 			const blits = [
 				[0xff, 0xff, 0xff, 0xff],
 				[0xff, 0x00, 0x00, 0x00],
@@ -89,8 +87,10 @@ export default (context) =>
 			];
 
 			const pass = {
+				displaySize: [...initialDisplaySize],
 				imageTexture,
 				renderTarget,
+				bytes: new Uint8ClampedArray(width * height * 4),
 				program,
 				quad,
 				blitFunc: (n) => {
@@ -103,15 +103,32 @@ export default (context) =>
 				setBlitFunc: (f) => (pass.blitFunc = f),
 				blit: (image) => {
 					if (Array.isArray(image)) {
-						bytes.set(image.flat().map(pass.blitFunc).flat(), 0);
+						pass.bytes.set(image.flat().map(pass.blitFunc).flat());
 					} else {
-						bytes.set(image, 0);
+						pass.bytes.set(image);
 					}
-					imageTexture.upload(bytes);
+					imageTexture.upload(pass.bytes);
 				},
 			};
 
 			return pass;
+		},
+		setSize: (pass, size) => {
+			pass.displaySize = [...size];
+			const [width, height] = size;
+			pass.bytes = new Uint8ClampedArray(width * height * 4);
+			const { imageTexture, renderTarget } = pass;
+			imageTexture.setSize(size);
+			imageTexture.upload(new Uint8Array(width * height * 4).fill(0xff));
+			renderTarget.setSize(size);
+			renderTarget.upload(
+				new Uint16Array(width * height * 4).map(
+					(_, i) =>
+						i % 4 === 3
+							? 0xbc00 //  -1
+							: 0x3c00, //  1
+				),
+			);
 		},
 		update: (pass, time) => {
 			const { gl, imageTexture, renderTarget, program, quad } = pass;

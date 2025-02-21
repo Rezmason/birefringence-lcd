@@ -1,6 +1,5 @@
 Screen border in render pass
 frame it in a fake device
-Screen dimensions
 
 UI
 	shift speed

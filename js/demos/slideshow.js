@@ -31,6 +31,12 @@ export default () => {
 
 	const stop = () => (postFrame = null);
 
+	const setSize = (size) => {
+		if (postFrame != null) {
+			postFrame(images[currentFrame]);
+		}
+	};
+
 	const changeSlide = (incr = 0) => {
 		currentFrame = (((currentFrame + incr) % totalFrames) + totalFrames) % totalFrames;
 		console.log("Current frame:", currentFrame);
@@ -46,5 +52,5 @@ export default () => {
 		changeSlide();
 	})();
 
-	return { ...createDemo(start, stop), changeSlide };
+	return { ...createDemo({ start, stop, setSize, requiredSize: [slideWidth, slideHeight] }), changeSlide };
 };

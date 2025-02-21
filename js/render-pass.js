@@ -1,11 +1,10 @@
-import { frameWidth, frameHeight } from "./data.js";
 import { createTexture, createProgram, createQuad, createPass } from "./factory.js";
 
 const [hsluv, snoise, voltage] = await Promise.all(
 	["./lib/hsluv-glsl.fsh", "./lib/snoise2d.glsl", "./lib/voltage.glsl"].map((url) => fetch(url).then((r) => r.text())),
 );
 
-export default (context, inputRenderTarget) =>
+export default (context, initialDisplaySize, inputRenderTarget) =>
 	createPass(context, {
 		init: (context) => {
 			const quad = createQuad(context);
@@ -13,31 +12,24 @@ export default (context, inputRenderTarget) =>
 			const program = createProgram(context, {
 				vertex: `
 							attribute vec2 aPos;
-							uniform vec2 uFrameSize, uSize;
-
 							varying vec2 vUV;
 
 							void main() {
 								vUV = (aPos + 1.0) * 0.5;
-
-								// float viewportAspectRatio = uSize.x / uSize.y;
-								// float frameAspectRatio = uFrameSize.x / uFrameSize.y;
-								vec2 scale = vec2(1.0);
-								// if (viewportAspectRatio > frameAspectRatio) {
-								// 	scale.x = frameAspectRatio / viewportAspectRatio;
-								// } else {
-								// 	scale.y = viewportAspectRatio / frameAspectRatio;
-								// }
-
-								gl_Position = vec4(aPos * scale, 0.0, 1.0);
+								gl_Position = vec4(aPos, 0.0, 1.0);
 							}
 						`,
 				fragment: `
+							#ifdef GL_OES_standard_derivatives
+							#extension GL_OES_standard_derivatives: enable
+							#endif
+
 							precision highp float;
 							#define PI 3.14159265359
 
 							varying vec2 vUV;
-							uniform vec2 uFrameSize;
+							uniform vec2 uDisplaySize;
+							uniform vec2 uShadowOffset;
 							uniform sampler2D uSampler;
 
 							${voltage}
@@ -51,68 +43,78 @@ export default (context, inputRenderTarget) =>
 							}
 
 							void main() {
-
-								vec2 nearestNeighborUV = floor(vUV * uFrameSize) / uFrameSize;
+								vec2 nearestNeighborUV = floor(vUV * uDisplaySize) / uDisplaySize;
 								vec3 color1 = voltage2HSLuv(bendVoltage(
 									loadVoltage(texture2D(uSampler, nearestNeighborUV).w),
 									vUV
 								));
-								vec2 pixel1 = abs(fract(vUV * uFrameSize) - 0.5) * 2.0;
+								vec2 pixel1 = abs(fract(vUV * uDisplaySize) - 0.5) * 2.0;
 								float cover1 = clamp(0.9 - pow(max(pixel1.x, pixel1.y), 20.0), 0.75, 1.0);
 
-								vec2 shadowUV = vUV + vec2(0.003, -0.006);
+								vec2 shadowUV = vUV + uShadowOffset;
 								float shadowVoltageOffset = abs(shadowUV.x - 0.5) * 0.025;
-								vec2 nearestNeighborShadowUV = floor(shadowUV * uFrameSize) / uFrameSize;
+								vec2 nearestNeighborShadowUV = floor(shadowUV * uDisplaySize) / uDisplaySize;
 								vec3 color2 = voltage2HSLuv(bendVoltage(
 									loadVoltage(texture2D(uSampler,  nearestNeighborShadowUV).w),
 									shadowUV
 								));
-								vec2 pixel2 = fract(shadowUV * uFrameSize);
+								vec2 pixel2 = fract(shadowUV * uDisplaySize);
 								pixel2.x = 1.0 - pixel2.x;
 								float cover2 = mix(0.9, 0.0, clamp(1.4 * (max(pixel2.x, pixel2.y) - 0.5), 0.0, 1.0));
+								cover2 *= clamp(100.0 / uDisplaySize.x, 0.0, 1.0);
 
 								vec2 shiftUV = vUV * 2.0 - 1.0;
 								float shift = clamp(abs(shiftUV.x - shiftUV.y) - 1.5, 0.0, 1.0);
 								color1 += shift * 0.4;
 								color2 += shift * 0.4;
 
-								float speckle = mix(-0.1, 0.2, randomFloat(vUV)) + snoise(vUV * uFrameSize * 4.0) * 0.1;
+								float speckle = mix(-0.1, 0.2, randomFloat(vUV)) + snoise(vUV * uDisplaySize * 4.0) * 0.1;
 								speckle = mix(0.0, speckle, (color1.z - 0.5) * 2.0);
-								color1.z += speckle * mix(0.4, 0.3, color1.y);
+								color1.z += speckle * mix(0.4, 0.2, color1.y);
 								color2.z += speckle * mix(0.0, 0.2, color1.y);
 
 								float shine = 0.0 * (vUV.x + (1.0 - vUV.y));
 								color1.z += shine;
 								color2.z += shine;
 
-								gl_FragColor = vec4(
+								vec4 outColor = vec4(
 									min(
 										mix(vec3(0.6, 0.7, 0.6), hsluvToRgb(color1 * vec3(1.0, 100.0, 100.0)), cover1),
 										mix(vec3(1.0), hsluvToRgb(color2 * vec3(1.0, 100.0, 100.0)), cover2)
 									),
 									1.0
 								);
+
+								outColor += (dFdy(outColor) + dFdx(outColor)) * 0.1;
+								gl_FragColor = outColor;
 							}
 						`,
 			});
 
 			return {
+				displaySize: [...initialDisplaySize],
 				program,
 				quad,
 			};
 		},
+		setSize: (pass, size) => {
+			pass.displaySize = [...size];
+		},
 		update: (pass, time) => {
-			const { gl, getSize, program, quad } = pass;
+			const { gl, getViewportSize, program, quad, displaySize } = pass;
 
 			if (!program.built) {
 				return;
 			}
-
-			const size = getSize();
-			gl.viewport(0, 0, ...size);
+			gl.viewport(0, 0, ...getViewportSize());
 			program.use();
-			gl.uniform2f(program.locations.uFrameSize, frameWidth, frameHeight);
-			gl.uniform2f(program.locations.uSize, ...size);
+			gl.uniform2f(program.locations.uDisplaySize, ...displaySize);
+
+			const [displayWidth, displayHeight] = displaySize;
+			let shadowOffset = [0, 0];
+
+			shadowOffset = [0.25 / displayWidth, -0.125 / displayHeight];
+			gl.uniform2f(program.locations.uShadowOffset, ...shadowOffset);
 
 			gl.uniform1i(program.locations.uSampler, 0);
 			gl.activeTexture(gl.TEXTURE0 + 0);

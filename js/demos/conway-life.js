@@ -1,5 +1,4 @@
 import createDemo from "./demo.js";
-import { frameWidth, frameHeight } from "../data.js";
 
 const randomize = (back) => {
 	back.forEach((row) => row.forEach((_, i) => (row[i] = Math.random() < 0.5 ? Math.ceil(Math.random() * 100) : 0)));
@@ -7,36 +6,37 @@ const randomize = (back) => {
 
 const colorIndices = [0, 2, 8, 15];
 
-const step = (front, back, image) => {
-	const skewX = Math.floor(frameWidth / 3);
-	const skewY = Math.floor(frameHeight / 3);
+const step = (size, front, back, image) => {
+	const [width, height] = size;
+	const skewX = Math.floor(width / 3);
+	const skewY = Math.floor(height / 3);
 	let numChanged = 0;
-	for (let i = 0; i < frameHeight; i++) {
-		const up = i === 0 ? frameHeight - 1 : i - 1;
-		const down = i === frameHeight - 1 ? 0 : i + 1;
+	for (let i = 0; i < height; i++) {
+		const up = i === 0 ? height - 1 : i - 1;
+		const down = i === height - 1 ? 0 : i + 1;
 
 		const upX = i === 0 ? skewX : 0;
-		const downX = i === frameHeight - 1 ? frameWidth - skewX : 0;
+		const downX = i === height - 1 ? width - skewX : 0;
 
-		for (let j = 0; j < frameWidth; j++) {
-			const left = j === 0 ? frameWidth - 1 : j - 1;
-			const right = j === frameWidth - 1 ? 0 : j + 1;
+		for (let j = 0; j < width; j++) {
+			const left = j === 0 ? width - 1 : j - 1;
+			const right = j === width - 1 ? 0 : j + 1;
 
 			const leftY = j === 0 ? skewY : 0;
-			const rightY = j === frameWidth - 1 ? frameHeight - skewY : 0;
+			const rightY = j === width - 1 ? height - skewY : 0;
 
 			let sum;
 			// prettier-ignore
 			{
 				sum =
-					(front[(  up +  leftY) % frameHeight][( left +   upX) % frameWidth] ? 1 : 0) +
-					(front[(  up +      0) % frameHeight][(    j +   upX) % frameWidth] ? 1 : 0) +
-					(front[(  up + rightY) % frameHeight][(right +   upX) % frameWidth] ? 1 : 0) +
-					(front[(   i +  leftY) % frameHeight][( left +     0) % frameWidth] ? 1 : 0) +
-					(front[(   i + rightY) % frameHeight][(right +     0) % frameWidth] ? 1 : 0) +
-					(front[(down +  leftY) % frameHeight][( left + downX) % frameWidth] ? 1 : 0) +
-					(front[(down +      0) % frameHeight][(    j + downX) % frameWidth] ? 1 : 0) +
-					(front[(down + rightY) % frameHeight][(right + downX) % frameWidth] ? 1 : 0) ;
+					(front[(  up +  leftY) % height][( left +   upX) % width] ? 1 : 0) +
+					(front[(  up +      0) % height][(    j +   upX) % width] ? 1 : 0) +
+					(front[(  up + rightY) % height][(right +   upX) % width] ? 1 : 0) +
+					(front[(   i +  leftY) % height][( left +     0) % width] ? 1 : 0) +
+					(front[(   i + rightY) % height][(right +     0) % width] ? 1 : 0) +
+					(front[(down +  leftY) % height][( left + downX) % width] ? 1 : 0) +
+					(front[(down +      0) % height][(    j + downX) % width] ? 1 : 0) +
+					(front[(down + rightY) % height][(right + downX) % width] ? 1 : 0) ;
 			}
 			let value;
 			if (front[i][j]) {
@@ -64,6 +64,21 @@ const step = (front, back, image) => {
 export default () => {
 	let timeout = null;
 	let postFrame = null;
+	let size = [1, 1];
+	let front, back, image;
+
+	const setSize = (s) => {
+		size = s;
+		const [width, height] = size;
+		[front, back, image] = Array(3)
+			.fill()
+			.map(() =>
+				Array(height)
+					.fill()
+					.map(() => Array(width).fill(0)),
+			);
+		randomize(back);
+	};
 
 	const start = (f) => {
 		postFrame = f;
@@ -76,23 +91,13 @@ export default () => {
 		timeout = null;
 	};
 
-	let [front, back, image] = Array(3)
-		.fill()
-		.map(() =>
-			Array(frameHeight)
-				.fill()
-				.map(() => Array(frameWidth).fill(0)),
-		);
-
-	randomize(back);
-
 	const update = () => {
 		clearTimeout(timeout);
 		[front, back] = [back, front];
-		const numChanged = step(front, back, image);
+		const numChanged = step(size, front, back, image);
 		postFrame(image);
-		timeout = setTimeout(update, 35 + Math.min(70, 0.1 * numChanged));
+		timeout = setTimeout(update, 35 + Math.min(70, (300 / (size[0] * size[1])) * numChanged));
 	};
 
-	return createDemo(start, stop);
+	return createDemo({ start, stop, setSize });
 };

@@ -1,5 +1,7 @@
 const halfFloatExtensions = ["OES_texture_half_float", "OES_texture_half_float_linear", "EXT_color_buffer_half_float", "WEBGL_color_buffer_float"];
 
+const derivativeExtension = "OES_standard_derivatives";
+
 const createGLCanvas = ({ extensions: extensionNames, resize: resizeFunc, canvas }) => {
 	if (canvas == null) {
 		canvas = document.createElement("canvas");
@@ -22,16 +24,17 @@ const createGLCanvas = ({ extensions: extensionNames, resize: resizeFunc, canvas
 		[canvas.width, canvas.height] = newSize;
 	};
 
-	const getSize = () => [width, height];
+	const getViewportSize = () => [width, height];
 
 	window.addEventListener("resize", resize);
 	resize();
 
-	return { canvas, gl, extensions, resize, getSize };
+	return { canvas, gl, extensions, resize, getViewportSize };
 };
 
 const createTexture = ({ gl, extensions }, params) => {
-	const { width, height, pixelate: isPixelated, float: isFloat } = params;
+	const { pixelate: isPixelated, float: isFloat } = params;
+	let { width, height } = params;
 	const glTexture = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_2D, glTexture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -40,10 +43,14 @@ const createTexture = ({ gl, extensions }, params) => {
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, isPixelated ? gl.NEAREST : gl.LINEAR);
 
 	const internalFormat = isFloat ? extensions.OES_texture_half_float.HALF_FLOAT_OES : gl.UNSIGNED_BYTE;
-	const texArgs = [gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, internalFormat];
 	const upload = (data) => {
 		gl.bindTexture(gl.TEXTURE_2D, glTexture);
-		gl.texImage2D(...texArgs, data);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, internalFormat, data);
+	};
+
+	const setSize = (size) => {
+		[width, height] = size;
+		upload();
 	};
 
 	upload();
@@ -53,15 +60,16 @@ const createTexture = ({ gl, extensions }, params) => {
 		// internalFormat,
 		glTexture,
 		upload,
+		setSize,
 	};
 };
 
 const createRenderTarget = (context, params) => {
 	const { gl } = context;
-	const { width, height } = params;
+	let { width, height } = params;
 
-	let { glTexture: front, upload: upload1 } = createTexture(context, params);
-	let { glTexture: back, upload: upload2 } = createTexture(context, params);
+	let { glTexture: front, upload: upload1, setSize: setSize1 } = createTexture(context, params);
+	let { glTexture: back, upload: upload2, setSize: setSize2 } = createTexture(context, params);
 	let isOn = false;
 
 	const upload = (data) => {
@@ -79,6 +87,13 @@ const createRenderTarget = (context, params) => {
 		} else {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		}
+	};
+
+	const setSize = (size) => {
+		[width, height] = size;
+		setSize1(size);
+		setSize2(size);
+		upload();
 	};
 
 	const toggle = (on) => {
@@ -99,6 +114,7 @@ const createRenderTarget = (context, params) => {
 		toggle,
 		swap,
 		upload,
+		setSize,
 	};
 
 	Object.defineProperty(renderTarget, "glTexture", { get: () => front });
@@ -187,14 +203,17 @@ const createQuad = ({ gl }) => {
 	return glBuffer;
 };
 
-const createPass = (context, { init, load, update: updateFunc }) => {
-	const pass = {
-		...context,
-		...init(context),
-		update: updateFunc == null ? (_) => _ : (timeMs) => updateFunc(pass, timeMs == null ? 0 : timeMs / 1000),
-	};
+const createPass = (context, { init, load, update: updateFunc, setSize: setSizeFunc }) => {
+	const pass = init(context);
+	Object.assign(pass, context);
+	if (updateFunc != null) {
+		pass.update = (timeMs) => updateFunc(pass, timeMs == null ? 0 : timeMs / 1000);
+	}
+	if (setSizeFunc != null) {
+		pass.setSize = (size) => setSizeFunc(pass, size);
+	}
 	pass.ready = load == null ? Promise.resolve() : load(pass);
 	return pass;
 };
 
-export { createGLCanvas, createTexture, createRenderTarget, createProgram, createQuad, createPass, halfFloatExtensions };
+export { createGLCanvas, createTexture, createRenderTarget, createProgram, createQuad, createPass, halfFloatExtensions, derivativeExtension };
