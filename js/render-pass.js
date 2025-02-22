@@ -58,7 +58,7 @@ export default (context, initialDisplaySize, displayMargin, inputRenderTarget) =
 								float cover1 = clamp(0.9 - pow(max(pixel1.x, pixel1.y), 20.0), 0.75, 1.0);
 								if (outOfBounds) {
 									color1 = vec4(0.0, 0.0, 1.0, 0.0);
-									// cover1 = 0.0;
+									cover1 = 0.0;
 								}
 
 								vec2 shadowUV = displayUV + uShadowOffset;
@@ -156,9 +156,7 @@ export default (context, initialDisplaySize, displayMargin, inputRenderTarget) =
 			gl.uniform2f(program.locations.uDisplaySize, ...displaySize);
 			gl.uniform2f(program.locations.uDisplayMargin, displayMargin, displayMargin);
 
-			let shadowOffset = [0, 0];
-
-			shadowOffset = [0.25 / displayWidth, -0.125 / displayHeight];
+			const shadowOffset = [0.25 / displayWidth, -0.125 / displayHeight];
 			gl.uniform2f(program.locations.uShadowOffset, ...shadowOffset);
 
 			gl.uniform1i(program.locations.uSampler, 0);
