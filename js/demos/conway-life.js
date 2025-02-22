@@ -62,12 +62,14 @@ const step = (size, front, back, image) => {
 };
 
 export default () => {
+	let startTime = null;
 	let timeout = null;
 	let postFrame = null;
 	let size = [1, 1];
 	let front, back, image;
 
 	const setSize = (s) => {
+		startTime = performance.now();
 		size = s;
 		const [width, height] = size;
 		[front, back, image] = Array(3)
@@ -93,10 +95,34 @@ export default () => {
 
 	const update = () => {
 		clearTimeout(timeout);
-		[front, back] = [back, front];
-		const numChanged = step(size, front, back, image);
-		postFrame(image);
-		timeout = setTimeout(update, 35 + Math.min(70, (300 / (size[0] * size[1])) * numChanged));
+		if (startTime != null) {
+			const startProgress = Math.min(1, (performance.now() - startTime) / 500);
+			const [width, height] = size;
+			for (let i = 0; i < height; i++) {
+				for (let j = 0; j < width; j++) {
+					if (i / height < startProgress) {
+						const value = back[i][j];
+						let color = colorIndices.findIndex((n) => value <= n);
+						if (color == -1) {
+							color = Math.floor(((value - 15) * 0.02) % 3) + 1;
+						}
+						image[i][j] = color;
+					} else {
+						image[i][j] = 0;
+					}
+				}
+			}
+			if (startProgress >= 1) {
+				startTime = null;
+			}
+			postFrame(image);
+			timeout = setTimeout(update, 100);
+		} else {
+			[front, back] = [back, front];
+			const numChanged = step(size, front, back, image);
+			postFrame(image);
+			timeout = setTimeout(update, 35 + Math.min(70, (300 / (size[0] * size[1])) * numChanged));
+		}
 	};
 
 	return createDemo({ start, stop, setSize });

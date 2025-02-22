@@ -17,8 +17,8 @@
 				margin: 0;
 				background: black;
 				color: white;
-				font-family: sans-serif;
-				font-size: 14pt;
+				font-family: "Michroma Regular", sans-serif;
+				font-size: min(24pt, 2vmin);
 			}
 
 			body {
@@ -26,6 +26,21 @@
 				flex-direction: column;
 				justify-content: center;
 				align-items: center;
+				gap: 1em;
+			}
+
+			canvas#main {
+				border-radius: 1vmin;
+				max-height: 80vh;
+				max-width: 96vw;
+			}
+
+			toolbar {
+				width: 96vw;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 1em;
 			}
 
 			dialog h2 {
@@ -45,7 +60,7 @@
 					0 1em 0.6em hsla(0deg 0% 0% / 0.4),
 					inset 0 -0.7em 0.12em 0.3em hsl(0deg 0% 8%);
 				max-width: 50vw;
-				font-size: max(12pt, 1vmax);
+				font-size: max(12pt, 1vmin);
 				text-align: justify;
 				color: white;
 				padding: 2em;
@@ -86,10 +101,84 @@
 				margin: 0.2em 0;
 				padding: 0.2em 2em 0.4em;
 			}
+
+			.brand {
+				display: flex;
+				gap: 0.5em;
+				justify-content: center;
+				text-wrap: nowrap;
+				text-transform: uppercase;
+				font-size: 1.5em;
+
+				color: white;
+				-webkit-text-stroke: 0.1em white;
+				text-stroke: 0.1em white;
+				letter-spacing: 1pt;
+			}
+
+			.brand-italic {
+				text-wrap: nowrap;
+				font-family: serif;
+				font-style: italic;
+				font-size: 2em;
+				letter-spacing: 3pt;
+				--text-color: white;
+
+				color: white;
+				-webkit-text-stroke: 0.08em white;
+				text-stroke: 0.08em white;
+			}
+
+			.brand-gold {
+				color: gold;
+				-webkit-text-stroke: 0.08em gold;
+				text-stroke: 0.08em gold;
+			}
+
+			.brand-teal {
+				color: teal;
+				-webkit-text-stroke: 0.08em teal;
+				text-stroke: 0.08em teal;
+			}
+
+			toolbar select {
+				box-sizing: border-box;
+				appearance: none;
+				display: inline-block;
+				font-size: 1em;
+				font-family: "Michroma Regular", sans-serif;
+				background: black;
+				color: white;
+				border-radius: 0.4em;
+				padding: 0.3em 0.6em;
+				border: 0.1em solid white;
+				cursor: pointer;
+			}
 		</style>
 	</head>
 	<body>
+		<toolbar>
+			<div class="brand">Cacio</div>
+			<div class="brand-italic"><span class="brand-gold">CCSTN-60</span><span class="brand-teal">ƒx</span></div>
+			<div class="brand">
+				<div>Color Cowabunga</div>
+				<img src="assets/color_sym.svg" style="height: 1.5em" /></div
+		></toolbar>
 		<canvas id="main"></canvas>
+		<toolbar>
+			<select>
+				<optgroup label="Section One">
+					<option>One</option>
+					<option>Two</option>
+					<option>Three</option>
+				</optgroup>
+				<optgroup label="Section Two">
+					<option>Four</option>
+					<option>Five</option>
+					<option>Six</option>
+				</optgroup>
+			</select>
+		</toolbar>
 		<dialog class="photosensitivity-warning" open>
 			<h2>
 				<span style="font-size: 2.5em; vertical-align: middle">⚠︎</span>

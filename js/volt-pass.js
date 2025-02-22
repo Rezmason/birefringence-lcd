@@ -7,18 +7,11 @@ export default (context, initialDisplaySize) =>
 		init: (context) => {
 			const [width, height] = initialDisplaySize;
 			const imageTexture = createTexture(context, { width, height, pixelate: true });
-			imageTexture.upload(new Uint8Array(width * height * 4).fill(0xff));
+			imageTexture.upload(new Uint8Array(width * height * 4).fill(0x0));
 
 			const renderTarget = createRenderTarget(context, { width, height, pixelate: true, float: true });
 
-			renderTarget.upload(
-				new Uint16Array(width * height * 4).map(
-					(_, i) =>
-						i % 4 === 3
-							? 0xbc00 //  -1
-							: 0x3c00, //  1
-				),
-			);
+			renderTarget.upload(new Uint16Array(width * height * 4).fill(0x4400));
 
 			const quad = createQuad(context);
 
@@ -64,15 +57,13 @@ export default (context, initialDisplaySize) =>
 
 								float oldVoltage = loadVoltage(texture2D(uStateSampler, vUV).a);
 
-								float rate = mix(0.03, 0.04, randomFloat(vUV));
+								float rate = mix(0.03, 0.031, randomFloat(vUV));
+								if (oldVoltage > whiteVoltage) {
+									rate = 0.1;
+								}
 								float voltage = mix(oldVoltage, goalVoltage, 1.0 - exp(-rate * uDeltaTime * 200.0));
 
-								float powerUp = mix(0.05, 1.0, clamp(pow(uTime, 2.0) / 2.0, 0.0, 1.0));
-								voltage = mix(oldVoltage, voltage, powerUp);
-
-								// voltage = vUV.x * (whiteVoltage - greenVoltage) + greenVoltage;
-
-								vec3 hsl = voltage2HSLuv(voltage);
+								vec3 hsl = voltage2HSLuv(voltage).xyz;
 
 								gl_FragColor = vec4(hsl, storeVoltage(voltage));
 							}
@@ -114,21 +105,15 @@ export default (context, initialDisplaySize) =>
 			return pass;
 		},
 		setSize: (pass, size) => {
+			pass.powerUpTime = pass.lastTime;
 			pass.displaySize = [...size];
 			const [width, height] = size;
 			pass.bytes = new Uint8ClampedArray(width * height * 4);
 			const { imageTexture, renderTarget } = pass;
 			imageTexture.setSize(size);
-			imageTexture.upload(new Uint8Array(width * height * 4).fill(0xff));
+			imageTexture.upload(new Uint8Array(width * height * 4).fill(0x0));
 			renderTarget.setSize(size);
-			renderTarget.upload(
-				new Uint16Array(width * height * 4).map(
-					(_, i) =>
-						i % 4 === 3
-							? 0xbc00 //  -1
-							: 0x3c00, //  1
-				),
-			);
+			renderTarget.upload(new Uint16Array(width * height * 4).fill(0x4400));
 		},
 		update: (pass, time) => {
 			const { gl, imageTexture, renderTarget, program, quad } = pass;
@@ -138,12 +123,16 @@ export default (context, initialDisplaySize) =>
 			}
 
 			const deltaTime = pass.lastTime == null ? 0 : time - pass.lastTime;
+
 			pass.lastTime = time;
+			if (pass.powerUpTime == null) {
+				pass.powerUpTime = time;
+			}
 
 			renderTarget.swap();
 			renderTarget.toggle(true);
 			program.use();
-			gl.uniform1f(program.locations.uTime, time);
+			gl.uniform1f(program.locations.uTime, time - pass.powerUpTime);
 			gl.uniform1f(program.locations.uDeltaTime, deltaTime);
 
 			gl.uniform1i(program.locations.uStateSampler, 0);

@@ -14,12 +14,15 @@ photosensitivityWarning.addEventListener("close", (event) => {
 });
 
 let displaySize = [95, 32];
+const displayMargin = 3 * 2;
 
 const context = createGLCanvas({
 	canvas: document.querySelector("canvas#main"),
 	extensions: [...halfFloatExtensions, derivativeExtension],
 	resize: () => {
-		const [displayWidth, displayHeight] = displaySize;
+		let [displayWidth, displayHeight] = displaySize;
+		displayWidth += displayMargin;
+		displayHeight += displayMargin;
 		if (displayWidth > displayHeight) {
 			return [document.body.clientWidth, Math.ceil((document.body.clientWidth * displayHeight) / displayWidth)];
 		} else {
@@ -30,26 +33,18 @@ const context = createGLCanvas({
 
 // context.gl.drawingBufferColorSpace = "display-p3"; // fun but maybe irrelevant
 
-const changeSize = (newSize) => {
-	displaySize = [...newSize];
+const changeDisplaySize = (size) => {
+	displaySize = [...size];
 	const [width, height] = displaySize;
+	context.canvas.style.aspectRatio = `${width + displayMargin} / ${height + displayMargin}`;
 	context.resize();
-	context.canvas.style.aspectRatio = `${displaySize[0]} / ${displaySize[1]}`;
-	context.canvas.style.aspectRatio = `${width} / ${height}`;
-	if (height > width) {
-		context.canvas.style.removeProperty("width");
-		context.canvas.style.height = "100vh";
-	} else {
-		context.canvas.style.width = "100vw";
-		context.canvas.style.removeProperty("height");
-	}
 	voltPass.setSize(displaySize);
 	renderPass.setSize(displaySize);
 	demos[demoIndex].setSize(displaySize);
 };
 
 const voltPass = createVoltPass(context, displaySize);
-const renderPass = createRenderPass(context, displaySize, voltPass.renderTarget);
+const renderPass = createRenderPass(context, displaySize, displayMargin, voltPass.renderTarget);
 const animFrameSkip = 1;
 let i = 0;
 let interactive = false;
@@ -65,7 +60,7 @@ const setDemo = (index) => {
 	}
 	demoIndex = index;
 	if (demos[demoIndex].requiredSize != null) {
-		changeSize(demos[demoIndex].requiredSize);
+		changeDisplaySize(demos[demoIndex].requiredSize);
 	}
 	demos[demoIndex].setSize(displaySize);
 	demos[demoIndex].start();
@@ -84,6 +79,8 @@ const update = (now) => {
 			render(now - animationStart);
 		}
 		i = (i + 1) % animFrameSkip;
+	} else {
+		renderPass.update(now);
 	}
 	requestAnimationFrame(update);
 };
@@ -94,8 +91,7 @@ const render = (now) => {
 };
 
 setDemo(demoIndex);
-changeSize(displaySize);
-render(0);
+changeDisplaySize(displaySize);
 update();
 
 document.addEventListener("keydown", ({ repeat, code }) => {
@@ -124,9 +120,9 @@ document.addEventListener("keydown", ({ repeat, code }) => {
 			const aspectRatio = Math.pow(Math.random() / 2 + 0.2, Math.random() < 0.5 ? 1 : -1);
 			const size = Math.random() * 100 + 10;
 			if (aspectRatio > 1) {
-				changeSize([Math.floor(size / aspectRatio), Math.floor(size)]);
+				changeDisplaySize([Math.floor(size / aspectRatio), Math.floor(size)]);
 			} else {
-				changeSize([Math.floor(size), Math.floor(size * aspectRatio)]);
+				changeDisplaySize([Math.floor(size), Math.floor(size * aspectRatio)]);
 			}
 			break;
 		}

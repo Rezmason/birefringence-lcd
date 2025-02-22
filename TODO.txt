@@ -1,6 +1,3 @@
-Screen border in render pass
-frame it in a fake device
-
 UI
 	shift speed
 	"scene select"
@@ -32,10 +29,6 @@ Graphics
 	https://www.tiktok.com/@rozoken/video/6981953361780280581
 
 mathematical voltage-to-chromaticity function
-
-Tuning and refinement
-	Adjust timing, try to match the timing in the video
-		Make some observations first
 
 Elephant! Gazelles!
 	https://youtu.be/Bu7e5PcKwXw?t=87

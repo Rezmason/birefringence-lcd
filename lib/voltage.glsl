@@ -2,6 +2,7 @@ float greenVoltage = 1.0;
 float blueVoltage  = 2.3;
 float redVoltage   = 3.2;
 float whiteVoltage = 3.5;
+float offVoltage = 4.0;
 float    orangeVoltage = mix(  redVoltage,  whiteVoltage, 0.50);
 float turquoiseVoltage = mix(greenVoltage,   blueVoltage, 0.75);
 float    purpleVoltage = mix( blueVoltage,    redVoltage, 0.50);
@@ -34,7 +35,9 @@ float bendVoltage(float voltage, vec2 uv) {
 	return bentVoltage;
 }
 
-vec3 voltage2HSLuv(float voltage) {
+vec4 voltage2HSLuv(float voltage) {
+
+	float power = smoothstep(offVoltage, whiteVoltage, voltage);
 
 	float hue = greenHue;
 	hue += smoothstep(greenVoltage,  blueVoltage, voltage) * ( blueHue - greenHue);
@@ -49,13 +52,16 @@ vec3 voltage2HSLuv(float voltage) {
 		mix(0.0, 7.0, smoothstep(purpleVoltage, whiteVoltage, voltage));
 	reflectance /= 11.0;
 
-	float whiteScatter = smoothstep(redVoltage, whiteVoltage, voltage);
+	float whiteScatter = smoothstep(redVoltage, whiteVoltage, voltage) * 0.8;
 
 	float lightness = mix(0.0, 1.0, reflectance * 0.6 + whiteScatter * 0.25);
 
-	return vec3(
+	float opacity = power;
+
+	return vec4(
 		hue,
 		saturation,
-		lightness
+		lightness,
+		opacity
 	);
 }
