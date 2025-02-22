@@ -1,4 +1,4 @@
-import { halfFloatExtensions, derivativeExtension, createGLCanvas } from "./factory.js";
+import { halfFloatExtensions, createGLCanvas } from "./factory.js";
 import createRenderPass from "./render-pass.js";
 import createVoltPass from "./volt-pass.js";
 import createLifeDemo from "./demos/conway-life.js";
@@ -18,7 +18,7 @@ const displayMargin = 3 * 2;
 
 const context = createGLCanvas({
 	canvas: document.querySelector("canvas#main"),
-	extensions: [...halfFloatExtensions, derivativeExtension],
+	extensions: [...halfFloatExtensions],
 	resize: () => {
 		let [displayWidth, displayHeight] = displaySize;
 		displayWidth += displayMargin;

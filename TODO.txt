@@ -1,3 +1,5 @@
+Half the resolution
+
 UI
 	shift speed
 	"scene select"

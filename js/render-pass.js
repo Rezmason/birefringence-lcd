@@ -20,10 +20,6 @@ export default (context, initialDisplaySize, displayMargin, inputRenderTarget) =
 							}
 						`,
 				fragment: `
-							#ifdef GL_OES_standard_derivatives
-							#extension GL_OES_standard_derivatives: enable
-							#endif
-
 							precision highp float;
 							#define PI 3.14159265359
 
@@ -128,7 +124,6 @@ export default (context, initialDisplaySize, displayMargin, inputRenderTarget) =
 									1.0
 								);
 
-								outColor += (dFdy(outColor) + dFdx(outColor)) * 0.1;
 								gl_FragColor = outColor;
 							}
 						`,
