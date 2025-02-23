@@ -1,11 +1,13 @@
-Half the resolution
-
 UI
-	shift speed
-	"scene select"
-		loop data
-	play/pause
-	playback speed
+	color shift speed
+	demo select
+		slideshow:
+			"scene select"
+				loop data
+			next/previous frame
+			play/pause
+			playback speed
+
 
 Graphics
 	Spiral
@@ -29,6 +31,8 @@ Graphics
 		SUPER電子手帳
 		CJK?
 	https://www.tiktok.com/@rozoken/video/6981953361780280581
+
+Half the resolution without messing up the canvas CSS
 
 mathematical voltage-to-chromaticity function
 

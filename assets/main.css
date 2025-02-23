@@ -1,0 +1,157 @@
+@font-face {
+	font-family: "Michroma Regular";
+	src: url("./fonts/michroma/Michroma-Regular.woff2") format("woff2");
+}
+
+html,
+body {
+	--vmin: calc(min(1vh, 0.7vw));
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+	background: black;
+	color: white;
+	font-family: "Michroma Regular", sans-serif;
+	font-size: calc(min(24pt, 2 * var(--vmin)));
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 1em;
+}
+
+canvas#main {
+	border-radius: var(--vmin);
+	max-height: 80vh;
+	max-width: 96vw;
+}
+
+toolbar {
+	width: 96vw;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1em;
+}
+
+dialog h2 {
+	font-family:
+		Michroma Regular,
+		sans-serif;
+	margin-top: 0;
+	text-transform: uppercase;
+	text-align: center;
+	text-shadow: hsl(0deg 0% 0%) 0 0.15em 0.1em;
+}
+
+dialog.photosensitivity-warning {
+	color: white;
+	background: hsl(0deg 0% 17%);
+	border-radius: 1.5em;
+	box-shadow:
+		0 1em 0.6em hsla(0deg 0% 0% / 0.4),
+		inset 0 -0.7em 0.12em 0.3em hsl(0deg 0% 8%);
+	font-size: calc(max(13pt, var(--vmin)));
+	padding: 0 2em 2em 2em;
+	text-align: justify;
+	overflow-y: scroll;
+	max-height: 100vh;
+	scrollbar-width: none;
+	border: none;
+	max-width: 9in;
+}
+
+dialog.photosensitivity-warning::-webkit-scrollbar {
+	display: none;
+}
+
+dialog form[method="dialog"] {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 2em;
+}
+
+dialog form[method="dialog"] button {
+	background: hsl(0deg 90% 60%);
+	box-shadow:
+		0 0.4em 0.6em hsla(0deg 0% 0% / 0.7),
+		inset 0 -0.4em 0.1em 0em hsl(0deg 90% 20%),
+		inset 0 -0.4em 0.4em 0.7em hsl(0deg 90% 70%);
+	border-radius: 0.5em;
+	border: none;
+	font-size: 1em;
+	padding: 0.2em 2em 0.6em;
+	color: white;
+	text-shadow:
+		hsl(0deg 60% 60%) 0 0.2em 0.1em,
+		hsl(0deg 60% 60%) 0 0.2em 0.1em;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+dialog form[method="dialog"] button:active {
+	background: hsl(0deg 90% 60%);
+	box-shadow:
+		0 0.4em 0.6em hsla(0deg 0% 0% / 0.7),
+		inset 0 -0.2em 0.1em 0em hsl(0deg 90% 20%),
+		inset 0 -0.2em 0.4em 0.7em hsl(0deg 90% 70%);
+	margin: 0.2em 0;
+	padding: 0.2em 2em 0.4em;
+}
+
+.brand {
+	display: flex;
+	gap: 0.5em;
+	justify-content: center;
+	text-wrap: nowrap;
+	text-transform: uppercase;
+	font-size: 1.5em;
+
+	color: white;
+	-webkit-text-stroke: 0.1em white;
+	text-stroke: 0.1em white;
+	letter-spacing: 1pt;
+}
+
+.brand-italic {
+	text-wrap: nowrap;
+	font-family: serif;
+	font-style: italic;
+	font-size: 2em;
+	letter-spacing: 3pt;
+	--text-color: white;
+
+	color: white;
+	-webkit-text-stroke: 0.08em white;
+	text-stroke: 0.08em white;
+}
+
+.brand-gold {
+	color: gold;
+	-webkit-text-stroke: 0.08em gold;
+	text-stroke: 0.08em gold;
+}
+
+.brand-teal {
+	color: teal;
+	-webkit-text-stroke: 0.08em teal;
+	text-stroke: 0.08em teal;
+}
+
+toolbar select {
+	box-sizing: border-box;
+	appearance: none;
+	display: inline-block;
+	font-size: 1em;
+	font-family: "Michroma Regular", sans-serif;
+	background: black;
+	color: white;
+	border-radius: 0.4em;
+	padding: 0.3em 0.6em;
+	border: 0.1em solid white;
+	cursor: pointer;
+}
