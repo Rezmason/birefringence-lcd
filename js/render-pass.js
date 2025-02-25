@@ -47,7 +47,7 @@ export default (context, initialDisplaySize, displayMargin, inputRenderTarget) =
 								bool outOfBounds = min(displayUV.x, displayUV.y) < 0.0 || max(displayUV.x, displayUV.y) > 1.0;
 								vec2 nearestNeighborUV = floor(displayUV * uDisplaySize) / uDisplaySize;
 								vec4 color1 = voltage2HSLuv(bendVoltage(
-									loadVoltage(texture2D(uSampler, nearestNeighborUV).w),
+									loadVoltage(texture2D(uSampler, nearestNeighborUV)),
 									displayUV
 								));
 								vec2 pixel1 = abs(fract(displayUV * uDisplaySize) - 0.5) * 2.0;
@@ -60,7 +60,7 @@ export default (context, initialDisplaySize, displayMargin, inputRenderTarget) =
 								vec2 shadowUV = displayUV + uShadowOffset;
 								vec2 nearestNeighborShadowUV = floor(shadowUV * uDisplaySize) / uDisplaySize;
 								vec4 color2 = voltage2HSLuv(bendVoltage(
-									loadVoltage(texture2D(uSampler,  nearestNeighborShadowUV).w),
+									loadVoltage(texture2D(uSampler,  nearestNeighborShadowUV)),
 									shadowUV
 								));
 
@@ -97,7 +97,7 @@ export default (context, initialDisplaySize, displayMargin, inputRenderTarget) =
 								shadow2 = clamp(shadow2, 0.0, 1.0);
 								background.z *= mix(0.8, 1.0, shadow2);
 
-								float speckle = mix(-0.1, 0.2, randomFloat(vUV)) + snoise(vUV * uDisplaySize * 4.0) * 0.1;
+								float speckle = mix(-0.1, 0.2, randomFloat(vUV)) + snoise(vUV * uDisplaySize * 8.0) * 0.1;
 								speckle = mix(0.0, speckle, (color1.z - 0.5) * 2.0);
 								color1.z += speckle * mix(0.4, 0.2, color1.y);
 								color2.z += speckle * mix(0.0, 0.2, color1.y);

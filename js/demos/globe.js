@@ -2,6 +2,8 @@ import createDemo from "./demo.js";
 
 const mod = (n, d) => ((n % d) + d) % d;
 
+const mix = (a, b, x) => a * (1 - x) + b * x;
+
 const oldGlobeImage = `
   -- -  ----------------  ---- -          -----  -------- -------
   ---------------------    -  ----       --------------- -----
@@ -88,7 +90,7 @@ const globeImageHeight = globeImage.length;
 
 // console.log(globeUVs.map(row => row.map(i => i === -1 ? " " : Math.floor(i % 10)).join("")).join("\n"));
 
-export default () => {
+export default (analog) => {
 	let scroll = 0;
 	let animationFrameRequest = null;
 	let postFrame = null;
@@ -102,7 +104,7 @@ export default () => {
 
 		stars = Array(width)
 			.fill()
-			.map(() => [Math.floor(Math.random() * height), Math.floor(Math.random() * width)]);
+			.map(() => [Math.floor(Math.random() * height), Math.random() * width]);
 
 		image = Array(height)
 			.fill()
@@ -146,15 +148,24 @@ export default () => {
 		const centerX = Math.floor((width - globeDiameter) / 2);
 		for (let i = 0; i < height; i++) {
 			for (let j = 0; j < width; j++) {
-				const value = Math.random() < 0.3 ? 1 : 2;
-				image[i][j] = value;
+				if (analog) {
+					image[i][j] = 2.6;
+				} else {
+					image[i][j] = Math.random() < 0.3 ? 1 : 2;
+				}
 			}
 		}
 
 		for (const [y, x] of stars) {
-			const starX = Math.floor(mod(x + scroll, width));
-			image[y][starX] = 0;
-			image[y][(starX + 1) % width] = 0;
+			if (analog) {
+				const starX = mod(x + scroll, width);
+				image[y][Math.floor(starX)] = mix(4.0, 2.6, starX % 1);
+				image[y][Math.floor((starX + 1) % width)] = mix(2.6, 4.0, starX % 1);
+			} else {
+				const starX = Math.floor(mod(x + scroll, width));
+				image[y][starX] = 0;
+				image[y][(starX + 1) % width] = 0;
+			}
 		}
 
 		for (let i = 0; i < height; i++) {
@@ -169,11 +180,17 @@ export default () => {
 				const x = Math.floor(mod(long + scroll, globeImageWidth));
 				const y = Math.floor((0.1 + (i / (globeDiameter + 1)) * 0.75) * globeImageHeight);
 				let value = globeImage[y][x];
-				if (image[i][j + centerX] === 3 && value === 2) {
-					value = 0;
-				}
-				if (Math.random() * long > globeImageWidth / 3) {
-					value = 0;
+				if (analog) {
+					const fade = Math.max(0, long - globeImageWidth / 3);
+					if (value === 3) {
+						value = 0.0 + fade * 0.3;
+					} else {
+						value = 2.3 + fade * 0.05;
+					}
+				} else {
+					if (Math.random() * long > globeImageWidth / 3) {
+						value = 0;
+					}
 				}
 				image[i][j + centerX] = value;
 			}
@@ -185,5 +202,5 @@ export default () => {
 		animationFrameRequest = requestAnimationFrame(update);
 	};
 
-	return createDemo({ start, stop, setSize });
+	return createDemo({ start, stop, setSize, analog });
 };

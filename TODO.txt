@@ -1,13 +1,13 @@
-UI
-	color shift speed
-	demo select
-		slideshow:
-			"scene select"
-				loop data
-			next/previous frame
-			play/pause
-			playback speed
-
+Demo UIs
+	slideshow
+		next / previous slide
+		chapter
+		play/pause
+		playback speed
+	life
+		resolution
+	globe
+		resolution
 
 Graphics
 	Spiral
@@ -31,8 +31,6 @@ Graphics
 		SUPER電子手帳
 		CJK?
 	https://www.tiktok.com/@rozoken/video/6981953361780280581
-
-Half the resolution without messing up the canvas CSS
 
 mathematical voltage-to-chromaticity function
 

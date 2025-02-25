@@ -16,19 +16,39 @@
 			</div>
 		</toolbar>
 		<canvas id="main"></canvas>
-		<toolbar>
-			<select>
-				<optgroup label="Section One">
-					<option>One</option>
-					<option>Two</option>
-					<option>Three</option>
-				</optgroup>
-				<optgroup label="Section Two">
-					<option>Four</option>
-					<option>Five</option>
-					<option>Six</option>
-				</optgroup>
-			</select>
+		<toolbar class="bottom">
+			<widget>
+				<label style="color: orangered" for="prog-select">PROGRAM </label>
+				<select style="color: orangered" name="prog-select" class="prog-select">
+					<optgroup label="4-color digital">
+						<option value="slideshow">Slideshow</option>
+						<option value="life">Life</option>
+						<option value="globe">Globe</option>
+					</optgroup>
+					<optgroup label="Continuous analog">
+						<option value="test-pattern">Test Pattern</option>
+						<option value="globe-analog">Globe</option>
+					</optgroup>
+				</select>
+			</widget>
+			<widget>
+				<label style="color: dodgerblue" for="color-space">SRGB </label>
+				<input
+					style="color: dodgerblue; --thumb-color: dodgerblue; width: 4em"
+					type="range"
+					name="color-space"
+					class="color-space"
+					min="0"
+					max="1"
+					value="0"
+					step="1"
+				/>
+				<label style="color: dodgerblue" for="color-space">P3 </label>
+			</widget>
+			<widget>
+				<label style="color: gold" for="shift-rate">SHIFT </label>
+				<input style="color: gold" type="range" name="shift-rate" class="shift-rate" min="0.2" max="2" value="1" step="0.2" />
+			</widget>
 		</toolbar>
 		<dialog class="photosensitivity-warning" open>
 			<h2 style="text-wrap: stable">

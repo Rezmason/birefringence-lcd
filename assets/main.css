@@ -25,8 +25,12 @@ body {
 
 canvas#main {
 	border-radius: var(--vmin);
-	max-height: 80vh;
-	max-width: 96vw;
+	--display-width: 100;
+	--display-height: 100;
+	aspect-ratio: calc(var(--display-width) / var(--display-height));
+	/*	max-height: 80vh;*/
+	/*	max-width: 96vw;*/
+	width: calc(min(96vw, 80vh * var(--display-width) / var(--display-height)));
 }
 
 toolbar {
@@ -142,8 +146,18 @@ dialog form[method="dialog"] button:active {
 	text-stroke: 0.08em teal;
 }
 
-toolbar select {
+toolbar.bottom * {
+	height: 2em;
+	margin: 0;
 	box-sizing: border-box;
+	vertical-align: middle;
+}
+
+toolbar label {
+	padding: 0 0.25em;
+}
+
+toolbar select {
 	appearance: none;
 	display: inline-block;
 	font-size: 1em;
@@ -154,4 +168,49 @@ toolbar select {
 	padding: 0.3em 0.6em;
 	border: 0.1em solid white;
 	cursor: pointer;
+}
+
+/* slider, aka range-type input */
+
+toolbar input[type="range"] {
+	--thumb-color: gold;
+	/* unset */
+	-webkit-appearance: unset;
+	font-size: unset;
+
+	width: 10em;
+	background: black;
+	border: 0.1em solid white;
+	border-radius: 0.4em;
+	padding: 0 0.3em;
+}
+
+toolbar input[type="range"]::-webkit-slider-thumb {
+	/* unset */
+	-webkit-appearance: unset;
+
+	background: var(--thumb-color);
+	border-radius: 0.2em;
+	margin: 0;
+	padding: 0;
+	width: 2.5em;
+	height: 1.3em;
+	cursor: grab;
+}
+
+toolbar input[type="range"]::-moz-range-thumb {
+	/* unset */
+	border: unset;
+
+	background: var(--thumb-color);
+	border-radius: 0.2em;
+	width: 2.5em;
+	height: 1.3em;
+	cursor: grab;
+}
+
+@media (any-hover: hover) {
+	toolbar input[type="range"]:hover {
+		background-color: black;
+	}
 }

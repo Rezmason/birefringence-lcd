@@ -11,7 +11,7 @@ export default (context, initialDisplaySize) =>
 
 			const renderTarget = createRenderTarget(context, { width, height, pixelate: true, float: true });
 
-			renderTarget.upload(new Uint16Array(width * height * 4).fill(0x4400));
+			renderTarget.upload(new Uint16Array(width * height * 4).fill(0xbc00));
 
 			const quad = createQuad(context);
 
@@ -30,7 +30,7 @@ export default (context, initialDisplaySize) =>
 							#define PI 3.14159265359
 							varying vec2 vUV;
 
-							uniform float uTime, uDeltaTime;
+							uniform float uTime, uDeltaTime, uShiftRate;
 							uniform sampler2D uStateSampler;
 							uniform sampler2D uImageSampler;
 
@@ -42,40 +42,59 @@ export default (context, initialDisplaySize) =>
 								return fract(sin(sn) * c);
 							}
 
-							void main() {
-								vec3 goal = texture2D(uImageSampler, vUV).rgb;
+							float loadGoalVoltage(vec2 uv) {
 								float goalVoltage = 0.0;
-								bool r = goal.r > 0.0;
-								bool g = goal.g > 0.0;
-								bool b = goal.b > 0.0;
-								bool w = r && g && b;
+								vec4 color = texture2D(uImageSampler, uv);
+								if (color.a == 1.0) {
+									bool r = color.r > 0.0;
+									bool g = color.g > 0.0;
+									bool b = color.b > 0.0;
+									bool w = r && g && b;
 
-								if (g) { goalVoltage = greenVoltage; }
-								if (b) { goalVoltage = blueVoltage; }
-								if (r) { goalVoltage = redVoltage; }
-								if (w) { goalVoltage = whiteVoltage; }
+									if (g) { goalVoltage = greenVoltage; }
+									if (b) { goalVoltage = blueVoltage; }
+									if (r) { goalVoltage = redVoltage; }
+									if (w) { goalVoltage = whiteVoltage; }
+								} else {
+									goalVoltage = color.r * 7.0;
+								}
+								return goalVoltage;
+							}
 
-								float oldVoltage = loadVoltage(texture2D(uStateSampler, vUV).a);
+							void main() {
+								float goalVoltage = loadGoalVoltage(vUV);
+								float oldVoltage = loadVoltage(texture2D(uStateSampler, vUV));
 
 								float rate = mix(0.03, 0.031, randomFloat(vUV));
 								if (oldVoltage > whiteVoltage) {
 									rate = 0.1;
 								}
-								float voltage = mix(oldVoltage, goalVoltage, 1.0 - exp(-rate * uDeltaTime * 200.0));
+								float voltage = mix(oldVoltage, goalVoltage, 1.0 - exp(-rate * uDeltaTime * uShiftRate * 200.0));
 
-								vec3 hsl = voltage2HSLuv(voltage).xyz;
-
-								gl_FragColor = vec4(hsl, storeVoltage(voltage));
+								gl_FragColor = storeVoltage(voltage);
 							}
 						`,
 			});
 
 			const blits = [
 				[0xff, 0xff, 0xff, 0xff],
-				[0xff, 0x00, 0x00, 0x00],
-				[0x00, 0x00, 0xff, 0x00],
-				[0x00, 0xff, 0x00, 0x00],
+				[0xff, 0x00, 0x00, 0xff],
+				[0x00, 0x00, 0xff, 0xff],
+				[0x00, 0xff, 0x00, 0xff],
 			];
+			const fourColorBlit = (n, i) => {
+				let result = blits[n];
+				if (result == null) {
+					result = blits[i % blits.length];
+				}
+				return result;
+			};
+			const analogBlit = (n, i) => {
+				const r = Math.floor((n * 0xff) / 7);
+				// const rDiff = n - r * 7 / 0xFF;
+				// const g = Math.floor(rDiff * 0xFF / 0.02);
+				return [r, 0 /*g*/, 0x00, 0x00];
+			};
 
 			const pass = {
 				displaySize: [...initialDisplaySize],
@@ -84,21 +103,22 @@ export default (context, initialDisplaySize) =>
 				bytes: new Uint8ClampedArray(width * height * 4),
 				program,
 				quad,
-				blitFunc: (n) => {
-					let result = blits[n];
-					if (result == null) {
-						result = blits[Math.floor(Math.random() * 4)];
-					}
-					return result;
-				},
-				setBlitFunc: (f) => (pass.blitFunc = f),
-				blit: (image) => {
+				blit: (image, analog) => {
 					if (Array.isArray(image)) {
-						pass.bytes.set(image.flat().map(pass.blitFunc).flat());
+						pass.bytes.set(
+							image
+								.flat()
+								.map(analog ? analogBlit : fourColorBlit)
+								.flat(),
+						);
 					} else {
 						pass.bytes.set(image);
 					}
 					imageTexture.upload(pass.bytes);
+				},
+				shiftRate: 1,
+				setShiftRate: (rate) => {
+					pass.shiftRate = Math.max(0, rate);
 				},
 			};
 
@@ -113,10 +133,10 @@ export default (context, initialDisplaySize) =>
 			imageTexture.setSize(size);
 			imageTexture.upload(new Uint8Array(width * height * 4).fill(0x0));
 			renderTarget.setSize(size);
-			renderTarget.upload(new Uint16Array(width * height * 4).fill(0x4400));
+			renderTarget.upload(new Uint16Array(width * height * 4).fill(0xbc00));
 		},
 		update: (pass, time) => {
-			const { gl, imageTexture, renderTarget, program, quad } = pass;
+			const { gl, imageTexture, renderTarget, program, quad, shiftRate } = pass;
 
 			if (!program.built) {
 				return;
@@ -134,6 +154,7 @@ export default (context, initialDisplaySize) =>
 			program.use();
 			gl.uniform1f(program.locations.uTime, time - pass.powerUpTime);
 			gl.uniform1f(program.locations.uDeltaTime, deltaTime);
+			gl.uniform1f(program.locations.uShiftRate, shiftRate);
 
 			gl.uniform1i(program.locations.uStateSampler, 0);
 			gl.activeTexture(gl.TEXTURE0);

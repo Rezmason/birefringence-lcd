@@ -1,5 +1,5 @@
 export default (params) => {
-	const { start: startFunc, stop: stopFunc, setSize: setSizeFunc, requiredSize } = params;
+	const { start: startFunc, stop: stopFunc, setSize: setSizeFunc, requiredSize, analog } = params;
 	let running = false;
 	let nextFrame = null;
 	let size = [1, 1];
@@ -63,6 +63,7 @@ export default (params) => {
 	if (requiredSize != null) {
 		demo.requiredSize = requiredSize;
 	}
+	demo.analog = !!analog;
 
 	return demo;
 };

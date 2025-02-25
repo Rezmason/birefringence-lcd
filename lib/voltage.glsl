@@ -15,16 +15,17 @@ float whiteHue = 312.2 + 80.0;
 
 float halfFloatPrecisionFix = 10.0;
 
-float loadVoltage(float voltage) {
-	voltage *= halfFloatPrecisionFix;
-	if (voltage < 0.0) {
-		voltage = whiteVoltage;
+float loadVoltage(vec4 color) {
+	if (color.a < 0.0) {
+		return offVoltage;
 	}
+	float voltage = (color.b + color.a) / halfFloatPrecisionFix;
 	return voltage;
 }
 
-float storeVoltage(float voltage) {
-	return voltage / halfFloatPrecisionFix;
+vec4 storeVoltage(float voltage) {
+	voltage *= halfFloatPrecisionFix;
+	return vec4( 0.0, 0.0, floor(voltage), fract(voltage) );
 }
 
 float bendVoltage(float voltage, vec2 uv) {
