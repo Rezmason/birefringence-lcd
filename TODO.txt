@@ -2,6 +2,7 @@ Demo UIs
 	slideshow
 		next / previous slide
 		chapter
+			identify chapters
 		play/pause
 		playback speed
 	life
@@ -9,16 +10,21 @@ Demo UIs
 	globe
 		resolution
 
+Continuous analog mode shows banding when max dimension > 256
+
 Graphics
+	Hilbert, space filling curve
 	Spiral
 	Continuous voltage mode
 		Continuous spiral
 		Ripples
 		Plasma
 		Still grayscale with purple-to-white reflectance range
+			Organizer cartoons?
+		Fijifun
+			Rainbow gradient boxes in ranom places
 	Truchet
 	Qix, moire pattern
-	Hilbert, space filling curve
 	Bouncing balls
 	Voronoi bouncing balls
 	NOVA display

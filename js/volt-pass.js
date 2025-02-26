@@ -142,7 +142,7 @@ export default (context, initialDisplaySize) =>
 				return;
 			}
 
-			const deltaTime = pass.lastTime == null ? 0 : time - pass.lastTime;
+			const deltaTime = pass.lastTime == null ? 0 : Math.min(1000 / 30, time - pass.lastTime);
 
 			pass.lastTime = time;
 			if (pass.powerUpTime == null) {

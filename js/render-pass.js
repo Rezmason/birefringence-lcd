@@ -47,11 +47,14 @@ export default (context, initialDisplaySize, displayMargin, inputRenderTarget) =
 								bool outOfBounds = min(displayUV.x, displayUV.y) < 0.0 || max(displayUV.x, displayUV.y) > 1.0;
 								vec2 nearestNeighborUV = floor(displayUV * uDisplaySize) / uDisplaySize;
 								vec4 color1 = voltage2HSLuv(bendVoltage(
-									loadVoltage(texture2D(uSampler, nearestNeighborUV)),
+									loadVoltage(texture2D(uSampler, nearestNeighborUV + 0.5 / uDisplaySize)),
 									displayUV
 								));
 								vec2 pixel1 = abs(fract(displayUV * uDisplaySize) - 0.5) * 2.0;
 								float cover1 = clamp(0.9 - pow(max(pixel1.x, pixel1.y), 20.0), 0.75, 1.0);
+								if (max(uDisplaySize.x, uDisplaySize.y) > 600.0) {
+									cover1 = 1.0;
+								}
 								if (outOfBounds) {
 									color1 = vec4(0.0, 0.0, 1.0, 0.0);
 									cover1 = 0.0;
@@ -60,7 +63,7 @@ export default (context, initialDisplaySize, displayMargin, inputRenderTarget) =
 								vec2 shadowUV = displayUV + uShadowOffset;
 								vec2 nearestNeighborShadowUV = floor(shadowUV * uDisplaySize) / uDisplaySize;
 								vec4 color2 = voltage2HSLuv(bendVoltage(
-									loadVoltage(texture2D(uSampler,  nearestNeighborShadowUV)),
+									loadVoltage(texture2D(uSampler,  nearestNeighborShadowUV + 0.5 / uDisplaySize)),
 									shadowUV
 								));
 
