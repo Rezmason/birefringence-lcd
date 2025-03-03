@@ -3,6 +3,11 @@
 	src: url("./fonts/michroma/Michroma-Regular.woff2") format("woff2");
 }
 
+@font-face {
+	font-family: "Custom Emoji";
+	src: url("./fonts/custom_emoji.svg") format("svg");
+}
+
 html,
 body {
 	--vmin: calc(min(1vh, 0.7vw));
@@ -11,7 +16,7 @@ body {
 	margin: 0;
 	background: black;
 	color: white;
-	font-family: "Michroma Regular", sans-serif;
+	font-family: "Michroma Regular", "Custom Emoji", sans-serif;
 	font-size: calc(min(24pt, 2 * var(--vmin)));
 }
 
@@ -33,22 +38,32 @@ canvas#main {
 	width: calc(min(96vw, 80vh * var(--display-width) / var(--display-height)));
 }
 
-toolbar {
-	width: 96vw;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	gap: 1em;
+dialog.photosensitivity-warning form[method="dialog"] button {
+	background: hsl(0deg 90% 60%);
+	box-shadow:
+		0 0.4em 0.6em hsla(0deg 0% 0% / 0.7),
+		inset 0 -0.4em 0.1em 0em hsl(0deg 90% 20%),
+		inset 0 -0.4em 0.4em 0.7em hsl(0deg 90% 70%);
+	border-radius: 0.5em;
+	border: none;
+	font-size: 1em;
+	padding: 0.2em 2em 0.6em;
+	color: white;
+	text-shadow:
+		hsl(0deg 60% 60%) 0 0.2em 0.1em,
+		hsl(0deg 60% 60%) 0 0.2em 0.1em;
+	font-weight: bold;
+	cursor: pointer;
 }
 
-dialog h2 {
-	font-family:
-		Michroma Regular,
-		sans-serif;
-	margin-top: 0;
-	text-transform: uppercase;
-	text-align: center;
-	text-shadow: hsl(0deg 0% 0%) 0 0.15em 0.1em;
+dialog.photosensitivity-warning form[method="dialog"] button:active {
+	background: hsl(0deg 90% 60%);
+	box-shadow:
+		0 0.4em 0.6em hsla(0deg 0% 0% / 0.7),
+		inset 0 -0.2em 0.1em 0em hsl(0deg 90% 20%),
+		inset 0 -0.2em 0.4em 0.7em hsl(0deg 90% 70%);
+	margin: 0.2em 0;
+	padding: 0.2em 2em 0.4em;
 }
 
 dialog.photosensitivity-warning {
@@ -72,42 +87,7 @@ dialog.photosensitivity-warning::-webkit-scrollbar {
 	display: none;
 }
 
-dialog form[method="dialog"] {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	height: 2em;
-}
-
-dialog form[method="dialog"] button {
-	background: hsl(0deg 90% 60%);
-	box-shadow:
-		0 0.4em 0.6em hsla(0deg 0% 0% / 0.7),
-		inset 0 -0.4em 0.1em 0em hsl(0deg 90% 20%),
-		inset 0 -0.4em 0.4em 0.7em hsl(0deg 90% 70%);
-	border-radius: 0.5em;
-	border: none;
-	font-size: 1em;
-	padding: 0.2em 2em 0.6em;
-	color: white;
-	text-shadow:
-		hsl(0deg 60% 60%) 0 0.2em 0.1em,
-		hsl(0deg 60% 60%) 0 0.2em 0.1em;
-	font-weight: bold;
-	cursor: pointer;
-}
-
-dialog form[method="dialog"] button:active {
-	background: hsl(0deg 90% 60%);
-	box-shadow:
-		0 0.4em 0.6em hsla(0deg 0% 0% / 0.7),
-		inset 0 -0.2em 0.1em 0em hsl(0deg 90% 20%),
-		inset 0 -0.2em 0.4em 0.7em hsl(0deg 90% 70%);
-	margin: 0.2em 0;
-	padding: 0.2em 2em 0.4em;
-}
-
-.brand {
+.brand1 {
 	display: flex;
 	gap: 0.5em;
 	justify-content: center;
@@ -121,7 +101,7 @@ dialog form[method="dialog"] button:active {
 	letter-spacing: 1pt;
 }
 
-.brand-italic {
+.brand2 {
 	text-wrap: nowrap;
 	font-family: serif;
 	font-style: italic;
@@ -144,73 +124,4 @@ dialog form[method="dialog"] button:active {
 	color: teal;
 	-webkit-text-stroke: 0.08em teal;
 	text-stroke: 0.08em teal;
-}
-
-toolbar.bottom * {
-	height: 2em;
-	margin: 0;
-	box-sizing: border-box;
-	vertical-align: middle;
-}
-
-toolbar label {
-	padding: 0 0.25em;
-}
-
-toolbar select {
-	appearance: none;
-	display: inline-block;
-	font-size: 1em;
-	font-family: "Michroma Regular", sans-serif;
-	background: black;
-	color: white;
-	border-radius: 0.4em;
-	padding: 0.3em 0.6em;
-	border: 0.1em solid white;
-	cursor: pointer;
-}
-
-/* slider, aka range-type input */
-
-toolbar input[type="range"] {
-	--thumb-color: gold;
-	/* unset */
-	-webkit-appearance: unset;
-	font-size: unset;
-
-	width: 10em;
-	background: black;
-	border: 0.1em solid white;
-	border-radius: 0.4em;
-	padding: 0 0.3em;
-}
-
-toolbar input[type="range"]::-webkit-slider-thumb {
-	/* unset */
-	-webkit-appearance: unset;
-
-	background: var(--thumb-color);
-	border-radius: 0.2em;
-	margin: 0;
-	padding: 0;
-	width: 2.5em;
-	height: 1.3em;
-	cursor: grab;
-}
-
-toolbar input[type="range"]::-moz-range-thumb {
-	/* unset */
-	border: unset;
-
-	background: var(--thumb-color);
-	border-radius: 0.2em;
-	width: 2.5em;
-	height: 1.3em;
-	cursor: grab;
-}
-
-@media (any-hover: hover) {
-	toolbar input[type="range"]:hover {
-		background-color: black;
-	}
 }
