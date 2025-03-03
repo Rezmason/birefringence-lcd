@@ -1,0 +1,164 @@
+:root {
+	--primary-color: white;
+	--secondary-color: black;
+	--accent-color: white;
+}
+
+.golden {
+	--accent-color: gold;
+}
+
+.russet {
+	--accent-color: orangered;
+}
+
+.bluish {
+	--accent-color: dodgerblue;
+}
+
+widget label {
+	color: var(--accent-color);
+	padding: 0 2em;
+}
+
+toolbar {
+	white-space: nowrap;
+	width: 96vw;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1em;
+}
+
+dialog h2 {
+	font-family: "Michroma Regular", "Custom Emoji", sans-serif;
+	margin-top: 0;
+	text-transform: uppercase;
+	text-align: center;
+	text-shadow: hsl(0deg 0% 0%) 0 0.15em 0.1em;
+}
+
+dialog form[method="dialog"] {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 2em;
+}
+
+toolbar.bottom * {
+	height: 2em;
+	margin: 0;
+	box-sizing: border-box;
+	vertical-align: middle;
+}
+
+toolbar.bottom widget.prog-options {
+	flex-grow: 1;
+	display: flex;
+	justify-content: left;
+	align-items: center;
+	gap: 0.5em;
+	margin-right: -1em;
+	overflow: hidden;
+}
+
+toolbar button {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	font-size: 1em;
+	line-height: 1em;
+	font-family: "Michroma Regular", "Custom Emoji", sans-serif;
+	background: var(--secondary-color);
+	color: var(--accent-color);
+	border-radius: 0.4em;
+	padding: 0.3em 0.6em;
+	border: 0.1em solid var(--primary-color);
+	cursor: pointer;
+}
+
+@media (any-hover: hover) {
+	toolbar button:hover {
+		background-color: var(--accent-color);
+		color: var(--secondary-color);
+		border-color: var(--accent-color);
+	}
+
+	toolbar button:active {
+		background-color: var(--primary-color);
+		color: var(--secondary-color);
+		border-color: var(--primary-color);
+	}
+}
+
+toolbar label {
+	padding: 0 0.25em;
+}
+
+toolbar select {
+	appearance: none;
+	display: inline-block;
+	font-size: 1em;
+	line-height: 1em;
+	font-family: "Michroma Regular", "Custom Emoji", sans-serif;
+	background: var(--secondary-color);
+	color: var(--accent-color);
+	border-radius: 0.4em;
+	padding: 0.3em 0.6em;
+	border: 0.1em solid var(--primary-color);
+	cursor: pointer;
+}
+
+/* slider, aka range-type input */
+
+toolbar input[type="range"] {
+	/* unset */
+	-webkit-appearance: unset;
+	font-size: unset;
+
+	width: 10em;
+	background: var(--secondary-color);
+	border: 0.1em solid var(--primary-color);
+	border-radius: 0.4em;
+	padding: 0 0.3em;
+}
+
+toolbar input[type="range"]::-webkit-slider-thumb {
+	/* unset */
+	-webkit-appearance: unset;
+
+	background: var(--accent-color);
+	border-radius: 0.2em;
+	margin: 0;
+	padding: 0;
+	width: 2.5em;
+	height: 1.3em;
+	cursor: grab;
+}
+
+toolbar input[type="range"]::-moz-range-thumb {
+	/* unset */
+	border: unset;
+
+	background: var(--accent-color);
+	border-radius: 0.2em;
+	width: 2.5em;
+	height: 1.3em;
+	cursor: grab;
+}
+
+toolbar input[type="range"]::-webkit-slider-thumb:active {
+	cursor: grabbing;
+	background: var(--primary-color);
+}
+
+toolbar input[type="range"]::-moz-range-thumb:active {
+	cursor: grabbing;
+	background: var(--primary-color);
+}
+
+@media (any-hover: hover) {
+	toolbar input[type="range"]:hover {
+		background-color: var(--secondary-color);
+	}
+}

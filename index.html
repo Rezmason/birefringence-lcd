@@ -1,25 +1,27 @@
 <!doctype html>
 <html>
+	<meta charset="utf-8" />
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>Liquid Twystal Display</title>
 		<link rel="stylesheet" type="text/css" href="assets/main.css" />
+		<link rel="stylesheet" type="text/css" href="assets/ui.css" />
 	</head>
 	<body>
 		<toolbar>
-			<div class="brand">Cacio</div>
-			<div class="brand-italic"><span class="brand-gold">CCSTN-60</span><span class="brand-teal">ƒx</span></div>
-			<div class="brand">
+			<div class="brand1">Cacio</div>
+			<div class="brand2"><span class="brand-gold">CCSTN-60</span><span class="brand-teal">ƒx</span></div>
+			<div class="brand1">
 				Color Cowabunga
 				<img src="assets/color_sym.svg" style="height: 1.5em" />
 			</div>
 		</toolbar>
 		<canvas id="main"></canvas>
 		<toolbar class="bottom">
-			<widget>
-				<label style="color: orangered" for="prog-select">PROGRAM </label>
-				<select style="color: orangered" name="prog-select" class="prog-select">
+			<widget class="russet">
+				<label for="prog-select">PROGRAM</label>
+				<select name="prog-select" class="prog-select">
 					<optgroup label="4-color digital">
 						<option value="slideshow">Slideshow</option>
 						<option value="life">Life</option>
@@ -31,23 +33,15 @@
 					</optgroup>
 				</select>
 			</widget>
-			<widget>
-				<label style="color: dodgerblue" for="color-space">SRGB </label>
-				<input
-					style="color: dodgerblue; --thumb-color: dodgerblue; width: 4em"
-					type="range"
-					name="color-space"
-					class="color-space"
-					min="0"
-					max="1"
-					value="0"
-					step="1"
-				/>
-				<label style="color: dodgerblue" for="color-space">P3 </label>
+			<widget class="russet prog-options"></widget>
+			<widget class="bluish">
+				<label for="color-space">SRGB</label>
+				<input style="width: 4em" type="range" name="color-space" class="color-space" min="0" max="1" value="0" step="1" />
+				<label for="color-space">P3</label>
 			</widget>
-			<widget>
-				<label style="color: gold" for="shift-rate">SHIFT </label>
-				<input style="color: gold" type="range" name="shift-rate" class="shift-rate" min="0.2" max="2" value="1" step="0.2" />
+			<widget class="golden">
+				<label for="shift-rate">SHIFT</label>
+				<input type="range" name="shift-rate" class="shift-rate" min="0.2" max="2" value="1" step="0.2" />
 			</widget>
 		</toolbar>
 		<dialog class="photosensitivity-warning" open>

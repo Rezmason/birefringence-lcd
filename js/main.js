@@ -10,6 +10,7 @@ const photosensitivityWarning = document.querySelector("dialog.photosensitivity-
 const shiftRateSlider = document.querySelector("input.shift-rate");
 const colorSpaceSlider = document.querySelector("input.color-space");
 const programSelector = document.querySelector("select.prog-select");
+const demoUI = document.querySelector("widget.prog-options");
 
 photosensitivityWarning.addEventListener("close", (event) => {
 	console.log(photosensitivityWarning.returnValue);
@@ -67,9 +68,8 @@ let interactive = false;
 let animating = false;
 let animationStart;
 let demoID = "slideshow";
-const slideshowDemo = createSlideshowDemo();
 const demos = {
-	slideshow: slideshowDemo,
+	slideshow: createSlideshowDemo(),
 	life: createLifeDemo(),
 	globe: createGlobeDemo(false),
 	["globe-analog"]: createGlobeDemo(true),
@@ -84,6 +84,11 @@ const setDemo = (id) => {
 	const demo = demos[demoID];
 	if (demo.requiredSize != null) {
 		changeDisplaySize(demo.requiredSize);
+	}
+	if (demo.createUI != null) {
+		demo.createUI(demoUI);
+	} else {
+		demoUI.innerHTML = "";
 	}
 	demo.setSize(displaySize);
 	demo.start();
@@ -122,16 +127,6 @@ document.addEventListener("keydown", ({ repeat, code }) => {
 		return;
 	}
 	switch (code) {
-		case "ArrowLeft":
-		case "ArrowUp": {
-			slideshowDemo.changeSlide(-1);
-			break;
-		}
-		case "ArrowRight":
-		case "ArrowDown": {
-			slideshowDemo.changeSlide(1);
-			break;
-		}
 		case "Enter": {
 			if (demos[demoID].requiredSize != null) {
 				break;

@@ -1,10 +1,4 @@
 Demo UIs
-	slideshow
-		next / previous slide
-		chapter
-			identify chapters
-		play/pause
-		playback speed
 	life
 		resolution
 	globe
