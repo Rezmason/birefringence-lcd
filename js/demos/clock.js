@@ -95,7 +95,7 @@ export default () => {
         for (let py = 0; py < 7; py ++) {
           for (let px = 0; px < 5; px ++) {
             for(const [index,channel] of timeGlyphs[i][py][px].entries()) {
-              top[(((py+offset) * (slideWidth*4)) + ((i*5*4)+(px*4)))+index] = channel
+              top[(((py+offset) * (slideWidth*4)) + ((i*6*4)+(px*4)))+index] = channel
             }
             //top[((py+(slideHeight/2+1)) * slideWidth*4) + (i*px)] = dateGlyphs[i][py][px]
           }
