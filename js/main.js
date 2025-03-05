@@ -68,12 +68,12 @@ let i = 0;
 let interactive = false;
 let animating = false;
 let animationStart;
-let demoID = "clock";
+let demoID = "slideshow";
 const demos = {
-	clock: createClockDemo(),
 	slideshow: createSlideshowDemo(),
 	life: createLifeDemo(),
 	globe: createGlobeDemo(false),
+	clock: createClockDemo(),
 	["globe-analog"]: createGlobeDemo(true),
 	["test-pattern"]: createTestPatternDemo(),
 };
