@@ -4,6 +4,7 @@ import createVoltPass from "./volt-pass.js";
 import createLifeDemo from "./demos/conway-life.js";
 import createGlobeDemo from "./demos/globe.js";
 import createSlideshowDemo from "./demos/slideshow.js";
+import createClockDemo from "./demos/clock.js";
 import createTestPatternDemo from "./demos/test-pattern.js";
 
 const photosensitivityWarning = document.querySelector("dialog.photosensitivity-warning");
@@ -72,6 +73,7 @@ const demos = {
 	slideshow: createSlideshowDemo(),
 	life: createLifeDemo(),
 	globe: createGlobeDemo(false),
+	clock: createClockDemo(),
 	["globe-analog"]: createGlobeDemo(true),
 	["test-pattern"]: createTestPatternDemo(),
 };
