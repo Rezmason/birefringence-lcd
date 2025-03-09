@@ -1,5 +1,5 @@
 import createDemo from "./demo.js";
-import font from "./font.js"
+import { font5x7 as font } from "./font.js";
 
 const scenes = [
 	{ name: "Built-in Demo", id: "built-in-demo", first: 0, last: 27 },
