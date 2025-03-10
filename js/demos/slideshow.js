@@ -40,6 +40,7 @@ const controlTemplate = `
 <select name="scene-select" class="scene-select">
 	${scenes.map((scene) => `<option value="${scene.id}">${scene.name}</option>`)}
 </select>
+<label for="scene-select">Scene</label>
 `;
 
 const [slideWidth, slideHeight] = [95, 32];

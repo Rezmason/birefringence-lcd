@@ -17,7 +17,7 @@ body {
 	background: black;
 	color: white;
 	font-family: "Michroma Regular", "Custom Emoji", sans-serif;
-	font-size: calc(min(24pt, 2 * var(--vmin)));
+	font-size: calc(min(24pt, 1.8 * var(--vmin)));
 }
 
 body {

@@ -45,6 +45,10 @@ dialog form[method="dialog"] {
 	height: 2em;
 }
 
+toolbar label /*, button*/ {
+	text-transform: uppercase;
+}
+
 toolbar.bottom * {
 	height: 2em;
 	margin: 0;
@@ -54,12 +58,7 @@ toolbar.bottom * {
 
 toolbar.bottom widget.prog-options {
 	flex-grow: 1;
-	display: flex;
-	justify-content: left;
-	align-items: center;
-	gap: 0.5em;
 	margin-right: -1em;
-	overflow: hidden;
 }
 
 toolbar button {

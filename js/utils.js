@@ -45,6 +45,13 @@ const buildFont = ({ size, glyphs }) => {
 	};
 };
 
-const writeTextToImage = (dst, font, text, x, y, spacing, compositeFunc) => {};
+const writeTextToImage = (image, font, text, x = 0, y = 0, spacing = 1, compositeFunc = null) => {
+	const horizAdvance = spacing + font.size[0];
+	let horizOffset = 0;
+	for (const c of text) {
+		font.glyphs[c].blitTo(image, 0, 0, x + horizOffset, y, ...font.size, compositeFunc);
+		horizOffset += horizAdvance;
+	}
+};
 
 export { fetchImageSheet, writeTextToImage, buildFont };

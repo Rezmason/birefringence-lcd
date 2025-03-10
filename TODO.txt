@@ -1,14 +1,14 @@
-Demo UIs
-	life
-		resolution
-	globe
-		resolution
-
 Continuous analog mode shows banding when max dimension > 256
+Resize button & dialog
+	Presets
+	Width slider
+	Height slider
+	Cancel or OK
 
 Graphics
-	Hilbert, space filling curve
 	Spiral
+	Space filling curve
+		https://lutanho.net/pic2html/draw_sfc.html
 	Continuous voltage mode
 		Continuous spiral
 		Ripples
@@ -16,21 +16,26 @@ Graphics
 		Still grayscale with purple-to-white reflectance range
 			Organizer cartoons?
 		Fijifun
-			Rainbow gradient boxes in ranom places
+			Rainbow gradient boxes in random places
+	Globe comet
 	Truchet
 	Qix, moire pattern
 	Bouncing balls
 	Voronoi bouncing balls
 	NOVA display
 	Timed motion that leverages gradient
-
-	Text with the original font
-		The supported characters are listed in the manual "CSF5550_OM_CASIO_EN_text.pdf"
-		EFIGS
-		math
-		SUPER電子手帳
-		CJK?
 	https://www.tiktok.com/@rozoken/video/6981953361780280581
+
+Clock stuff
+	Switch clock demo to Intl?
+	World clock?
+
+Full fonts, loaded from images
+	The supported characters are listed in the manual "CSF5550_OM_CASIO_EN_text.pdf"
+	EFIGS
+	math
+	SUPER電子手帳
+	CJK?
 
 mathematical voltage-to-chromaticity function
 

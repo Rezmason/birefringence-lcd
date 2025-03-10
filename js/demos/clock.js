@@ -1,7 +1,7 @@
 import createDemo from "./demo.js";
 import VoltMap from "../volt-map.js";
 import { font5x7 as font, font4x7 as thinFont } from "./font.js";
-import { fetchImageSheet } from "../utils.js";
+import { fetchImageSheet, writeTextToImage } from "../utils.js";
 
 const dissectFormattedDate = /(\w{3}), (\w{3}) (\d+), (\d+), (\d+):(\d+):(\d+) ([AP]M)/;
 
@@ -65,12 +65,14 @@ const scenes = [
 ];
 
 const controlTemplate = `
+<label for="scene-select">Scene</label>
 <select name="scene-select" class="scene-select">
 	${scenes.map((scene) => `<option value="${scene.id}">${scene.name}</option>`)}
 </select>
 <select name="city-select" class="city-select">
 	${Object.keys(timeZonesByCityCode).map((code) => `<option value="${code}">${code}</option>`)}
 </select>
+<label for="city-select">Zone</label>
 `;
 
 const [width, height] = [95, 32];
@@ -153,47 +155,14 @@ export default () => {
 		if (post == null || sceneFrames[currentFrame] == null) {
 			return;
 		}
-
 		sceneFrames[currentFrame].blitTo(image, 0, 0, 0, 0, width, 16);
-
 		const blue = (s) => (s ? 2 : 0);
 		const green = (s) => (s ? 3 : 0);
-
-		const horizAdvance = font.size[0] + 1;
-		{
-			let x = 0;
-			for (const c of dateString) {
-				font.glyphs[c].blitTo(image, 0, 0, x, 17, ...font.size, blue);
-				x += horizAdvance;
-			}
-		}
-		{
-			let x = 0;
-			for (const c of cityCode) {
-				font.glyphs[c].blitTo(image, 0, 0, x, 25, ...font.size, green);
-				x += horizAdvance;
-			}
-		}
-		{
-			let x = horizAdvance * 6;
-			for (const c of timeString) {
-				font.glyphs[c].blitTo(image, 0, 0, x, 25, ...font.size, blue);
-				x += horizAdvance;
-			}
-		}
-
-		const thinHorizAdvance = thinFont.size[0] + 1;
-		{
-			let x = thinHorizAdvance * 14;
-			for (const c of secondsString) {
-				thinFont.glyphs[c].blitTo(image, 0, 0, x, 25, ...thinFont.size, blue);
-				x += thinHorizAdvance;
-			}
-		}
-
-		if (post != null) {
-			post(image);
-		}
+		writeTextToImage(image, font, dateString, 0, 17, 1, blue);
+		writeTextToImage(image, font, cityCode, 0, 25, 1, green);
+		writeTextToImage(image, font, timeString, 36, 25, 1, blue);
+		writeTextToImage(image, thinFont, secondsString, 70, 25, 1, blue);
+		post(image);
 	};
 
 	const createUI = (element) => {
