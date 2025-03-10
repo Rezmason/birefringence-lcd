@@ -59,15 +59,15 @@ const guessCityCode = () => {
 };
 
 const scenes = [
-	{ name: "Drive", id: "drive", first: 29, last: 88, offset: 18 },
-	{ name: "Seaside", id: "seaside", first: 89, last: 148, offset: 60 - 49 },
-	// { name: "Safari", id: "safari", first: 158, last: 171, offset: 60 - 0 }, // TODO: complete
+	{ name: "Town", id: "town", first: 29, last: 88, offset: 18 },
+	{ name: "Harbor", id: "harbor", first: 89, last: 148, offset: 60 - 49 },
+	{ name: "Safari", id: "safari", disabled: true, first: 158, last: 171, offset: 60 - 0 }, // TODO: complete
 ];
 
 const controlTemplate = `
 <label for="scene-select">Scene</label>
 <select name="scene-select" class="scene-select boxy-right">
-	${scenes.map((scene) => `<option value="${scene.id}">${scene.name}</option>`)}
+	${scenes.map((scene) => `<option value="${scene.id}" ${scene.disabled ? "disabled" : ""}>${scene.name}</option>`)}
 </select>
 <select name="city-select" class="city-select boxy-left">
 	${Object.keys(timeZonesByCityCode).map((code) => `<option value="${code}">${code}</option>`)}
@@ -78,7 +78,7 @@ const controlTemplate = `
 const [width, height] = [95, 32];
 
 export default () => {
-	let currentScene = scenes.find((scene) => scene.id === "drive");
+	let currentScene = scenes.find((scene) => scene.id === "town");
 	let currentFrame = 0;
 	let sceneFrames = [];
 

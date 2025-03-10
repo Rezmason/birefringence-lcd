@@ -5,5 +5,6 @@
 		<rect fill="#f51" x="10" y="55" width="33" height="33"></rect>
 		<rect fill="#1f5" x="55" y="10" width="33" height="33"></rect>
 		<rect fill="#51f" x="55" y="55" width="33" height="33"></rect>
+		<rect fill="#222" x="10" y="10" width="33" height="33"></rect>
 	</g>
 </svg>

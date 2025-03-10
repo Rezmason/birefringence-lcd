@@ -26,6 +26,8 @@ Graphics
 	Timed motion that leverages gradient
 	https://www.tiktok.com/@rozoken/video/6981953361780280581
 
+Calculator?
+
 Clock stuff
 	Switch clock demo to Intl?
 	World clock?
@@ -40,6 +42,8 @@ Full fonts, loaded from images
 mathematical voltage-to-chromaticity function
 
 Elephant! Gazelles!
-	https://youtu.be/Bu7e5PcKwXw?t=87
+	https://www.youtube.com/watch?v=Bu7e5PcKwXw
 B&W: fish parade and airport
 	https://www.youtube.com/watch?v=FfpUD_g0hsk
+
+https://www.youtube.com/watch?v=dXCbcJAeTAA
