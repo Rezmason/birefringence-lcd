@@ -76,6 +76,16 @@ toolbar button {
 	cursor: pointer;
 }
 
+.boxy-left {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
+.boxy-right {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
 @media (any-hover: hover) {
 	toolbar button:hover {
 		background-color: var(--accent-color);

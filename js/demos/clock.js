@@ -66,13 +66,13 @@ const scenes = [
 
 const controlTemplate = `
 <label for="scene-select">Scene</label>
-<select name="scene-select" class="scene-select">
+<select name="scene-select" class="scene-select boxy-right">
 	${scenes.map((scene) => `<option value="${scene.id}">${scene.name}</option>`)}
 </select>
-<select name="city-select" class="city-select">
+<select name="city-select" class="city-select boxy-left">
 	${Object.keys(timeZonesByCityCode).map((code) => `<option value="${code}">${code}</option>`)}
 </select>
-<label for="city-select">Zone</label>
+<label for="city-select">City</label>
 `;
 
 const [width, height] = [95, 32];

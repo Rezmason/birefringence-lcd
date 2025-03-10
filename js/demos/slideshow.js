@@ -14,14 +14,14 @@ const scenes = [
 ];
 
 const controlTemplate = `
-<button id="prev" title="Previous">
+<button id="prev" title="Previous" class="boxy-right">
 	<svg preserveAspectRatio="none" viewBox="0 0 10 11" style="width: 1.5em; height: 1em;">
 		<rect fill="currentColor" x="0" y="0" width="1.5" height="10"></rect>
 		<path fill="currentColor" d="M 1.5 5.5 l 4.25 -5 0 10 z"></path>
 		<path fill="currentColor" d="M 5.75 5.5 l 4.25 -5 0 10 z"></path>
 	</svg>
 </button>
-<button id="play-pause" title="Play / Pause">
+<button id="play-pause" title="Play / Pause" class="boxy-left boxy-right">
 	<svg class="play" preserveAspectRatio="none" viewBox="0 0 10 11" style="width: 1em; height: 1em;">
 		<path fill="currentColor" d="M 0 0.5 l 10 5 -10 5 z"></path>
 	</svg>
@@ -30,7 +30,7 @@ const controlTemplate = `
 		<rect fill="currentColor" x="6.5" y="0" width="3.5" height="10"></rect>
 	</svg>
 </button>
-<button id="next" title="Next">
+<button id="next" title="Next" class="boxy-left">
 	<svg preserveAspectRatio="none" viewBox="0 0 10 11" style="width: 1.5em; height: 1em;">
 		<path fill="currentColor" d="M 0 0.5 l 4.25 5 -4.25 5 z"></path>
 		<path fill="currentColor" d="M 4.25 0.5 l 4.25 5 -4.25 5 z"></path>
