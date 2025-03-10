@@ -76,20 +76,20 @@ export default (context, initialDisplaySize) =>
 						`,
 			});
 
-			const blits = [
+			const digitalValues = [
 				[0xff, 0xff, 0xff, 0xff],
 				[0xff, 0x00, 0x00, 0xff],
 				[0x00, 0x00, 0xff, 0xff],
 				[0x00, 0xff, 0x00, 0xff],
 			];
-			const fourColorBlit = (n, i) => {
-				let result = blits[n];
+			const encodeDigital = (n, i) => {
+				let result = digitalValues[n];
 				if (result == null) {
-					result = blits[i % blits.length];
+					result = digitalValues[i % digitalValues.length];
 				}
 				return result;
 			};
-			const analogBlit = (n, i) => {
+			const encodeAnalog = (n, i) => {
 				const r = Math.floor((n * 0xff) / 7);
 				// const rDiff = n - r * 7 / 0xFF;
 				// const g = Math.floor(rDiff * 0xFF / 0.02);
@@ -103,17 +103,8 @@ export default (context, initialDisplaySize) =>
 				bytes: new Uint8ClampedArray(width * height * 4),
 				program,
 				quad,
-				blit: (image, analog) => {
-					if (Array.isArray(image)) {
-						pass.bytes.set(
-							image
-								.flat()
-								.map(analog ? analogBlit : fourColorBlit)
-								.flat(),
-						);
-					} else {
-						pass.bytes.set(image);
-					}
+				setFrame: (frame) => {
+					pass.bytes.set(frame.data.flatMap(frame.isAnalog ? encodeAnalog : encodeDigital));
 					imageTexture.upload(pass.bytes);
 				},
 				shiftRate: 1,

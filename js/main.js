@@ -68,7 +68,7 @@ let i = 0;
 let interactive = false;
 let animating = false;
 let animationStart;
-let demoID = "slideshow";
+let demoID = "clock";
 const demos = {
 	slideshow: createSlideshowDemo(),
 	life: createLifeDemo(),
@@ -77,6 +77,19 @@ const demos = {
 	["globe-analog"]: createGlobeDemo(true),
 	["test-pattern"]: createTestPatternDemo(),
 };
+
+programSelector.innerHTML = `
+<optgroup label="4-color digital">
+	<option value="slideshow">Slideshow</option>
+	<option value="life">Life</option>
+	<option value="globe">Globe</option>
+	<option value="clock" selected>Clock</option>
+</optgroup>
+<optgroup label="Continuous analog">
+	<option value="test-pattern">Test Pattern</option>
+	<option value="globe-analog">Globe</option>
+</optgroup>
+`;
 
 const setDemo = (id) => {
 	if (demos[demoID] != null) {
@@ -101,9 +114,9 @@ const update = (now) => {
 		if (animationStart == null) {
 			animationStart = now;
 		}
-		const imageBytes = demos[demoID].getNextFrame();
-		if (imageBytes != null) {
-			voltPass.blit(imageBytes, demos[demoID].analog);
+		const frame = demos[demoID].getNextFrame();
+		if (frame != null) {
+			voltPass.setFrame(frame);
 		}
 		if (i === 0) {
 			render(now - animationStart);

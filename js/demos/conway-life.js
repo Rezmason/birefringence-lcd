@@ -1,4 +1,5 @@
 import createDemo from "./demo.js";
+import VoltMap from "../volt-map.js";
 
 const randomize = (back) => {
 	back.forEach((row) => row.forEach((_, i) => (row[i] = Math.random() < 0.5 ? Math.ceil(Math.random() * 100) : 0)));
@@ -52,7 +53,7 @@ const step = (size, front, back, image) => {
 			if (color == -1) {
 				color = Math.floor(((value - 15) * 0.02) % 3) + 1;
 			}
-			image[i][j] = color;
+			image.data[i * width + j] = color;
 		}
 	}
 	if (numChanged === 0) {
@@ -72,13 +73,14 @@ export default () => {
 		startTime = performance.now();
 		size = s;
 		const [width, height] = size;
-		[front, back, image] = Array(3)
+		[front, back] = Array(2)
 			.fill()
 			.map(() =>
 				Array(height)
 					.fill()
 					.map(() => Array(width).fill(0)),
 			);
+		image = new VoltMap(width, height);
 		randomize(back);
 	};
 
@@ -106,9 +108,9 @@ export default () => {
 						if (color == -1) {
 							color = Math.floor(((value - 15) * 0.02) % 3) + 1;
 						}
-						image[i][j] = color;
+						image.data[i * width + j] = color;
 					} else {
-						image[i][j] = 0;
+						image.data[i * width + j] = 0;
 					}
 				}
 			}

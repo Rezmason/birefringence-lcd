@@ -1,133 +1,235 @@
 import createDemo from "./demo.js";
-import { font5x7 as font } from "./font.js";
+import VoltMap from "../volt-map.js";
+import { font5x7 as font, font4x7 as thinFont } from "./font.js";
 import { fetchImageSheet } from "../utils.js";
 
+const dissectFormattedDate = /(\w{3}), (\w{3}) (\d+), (\d+), (\d+):(\d+):(\d+) ([AP]M)/;
+
+const timeZonesByCityCode = {
+	["Auto"]: null,
+	["-11"]: "Etc/GMT+11",
+	["HNL"]: "Pacific/Honolulu",
+	["ANC"]: "America/Anchorage",
+	["LAX"]: "America/Los_Angeles",
+	["DEN"]: "America/Denver",
+	["CHI"]: "America/Chicago",
+	["NYC"]: "America/New_York",
+	["CCS"]: "America/Caracas",
+	["RIO"]: "America/Sao_Paulo",
+	["-2H"]: "Etc/GMT+2",
+	["-1H"]: "Etc/GMT+1",
+	["LON"]: "Europe/London",
+	["PAR"]: "Europe/Paris",
+	["CAI"]: "Africa/Cairo",
+	["JRS"]: "Asia/Jerusalem",
+	["JED"]: "Asia/Riyadh",
+	["THR"]: "Asia/Tehran",
+	["DXB"]: "Asia/Dubai",
+	["KBL"]: "Asia/Kabul",
+	["KHI"]: "Asia/Karachi",
+	["DEL"]: "Asia/Kolkata",
+	["DAC"]: "Asia/Dhaka",
+	["RGN"]: "Asia/Yangon",
+	["BKK"]: "Asia/Bangkok",
+	["HKG"]: "Asia/Hong_Kong",
+	["TYO"]: "Asia/Tokyo",
+	["ADL"]: "Australia/Adelaide",
+	["SYD"]: "Australia/Sydney",
+	["NOU"]: "Pacific/Noumea",
+	["WLG"]: "Pacific/Auckland",
+};
+
+const guessCityCode = () => {
+	// TODO: poll Intl if it's available
+	const now = new Date();
+	const theNowString = now.toLocaleString("en-US");
+	for (const [name, timeZone] of Object.entries(timeZonesByCityCode)) {
+		if (timeZone == null) {
+			continue;
+		}
+		if (now.toLocaleString("en-US", { timeZone }) === theNowString) {
+			return name;
+		}
+	}
+	let fallback = (now.getTimezoneOffset() / -60).toString().substr(0, 3);
+	if (fallback.length < 3) {
+		fallback += "H";
+	}
+	return fallback;
+};
+
 const scenes = [
-	{ name: "Built-in Demo", id: "built-in-demo", first: 0, last: 27 },
-	{ name: "Drive", id: "drive", first: 29, last: 88 },
-	{ name: "Seaside", id: "seaside", first: 89, last: 148 },
-	{ name: "Safari", id: "safari", first: 158, last: 171 }, // TODO: complete
-	{ name: "Posy's Tour", id: "posy-tour", first: 172, last: 265 },
-	{ name: "Illustrations", id: "illustrations", first: 218, last: 233 },
-	{ name: "Desktop Menu", id: "desktop-menu", first: 258, last: 264 },
-	{ name: "All", id: "all", first: 0, last: 265 },
+	{ name: "Drive", id: "drive", first: 29, last: 88, offset: 18 },
+	{ name: "Seaside", id: "seaside", first: 89, last: 148, offset: 60 - 49 },
+	// { name: "Safari", id: "safari", first: 158, last: 171, offset: 60 - 0 }, // TODO: complete
 ];
 
 const controlTemplate = `
 <select name="scene-select" class="scene-select">
 	${scenes.map((scene) => `<option value="${scene.id}">${scene.name}</option>`)}
 </select>
+<select name="city-select" class="city-select">
+	${Object.keys(timeZonesByCityCode).map((code) => `<option value="${code}">${code}</option>`)}
+</select>
 `;
 
-const [slideWidth, slideHeight] = [95, 32];
+const [width, height] = [95, 32];
 
 export default () => {
-  let images = [];
-  let currentFrame = 0;
-  let totalFrames = 1;
-  let postFrame = null;
-  let currentScene = scenes.find((scene) => scene.id === "drive");
-  let timeout = null;
+	let currentScene = scenes.find((scene) => scene.id === "drive");
+	let currentFrame = 0;
+	let sceneFrames = [];
 
-  const start = (f) => {
-    postFrame = f;
-    postFrame(images[currentFrame]);
-    update();
-    setTimeout(update, 1000)
-  };
+	let post = null;
+	let timeout = null;
 
-  const stop = () => {
-    postFrame = null;
-    clearTimeout(timeout);
-	  timeout = null;
-  };
+	const image = new VoltMap(width, height);
+	image.fill(0);
 
-  const update = () => {
-    changeSlide(1)
-    setTimeout(update, 1000)
-  };
+	let dateString = Array(16).fill("D").join("");
+	let lastLocalHour = null;
+	let cityCode = guessCityCode();
+	let overrideCityCode = false;
+	let timeString = Array(11).fill("T").join("");
+	let secondsString = Array(2).fill("S").join("");
 
-  const setSize = (size) => {
-    if (postFrame != null) {
-      postFrame(images[currentFrame]);
-    }
-  };
+	const start = (f) => {
+		post = f;
+		update();
+	};
 
-  const changeSlide = (incr = 0) => {
-		if (currentFrame + incr > currentScene.last) {
-			currentFrame = currentScene.first;
-		} else if (currentFrame + incr < currentScene.first) {
-			currentFrame = currentScene.last;
-		} else {
-			currentFrame += incr;
-		}
-		console.log("Current frame:", currentScene.id, currentFrame);
-		if (postFrame != null && images[currentFrame]) {
-      let top = images[currentFrame]
-      let date = new Date().toDateString().toUpperCase()
-      let time = new Date().toLocaleTimeString().toUpperCase()
-      let dateGlyphs = Array.from(date).map((char)=>font[char]?.map((row)=>Array.from(row).map((char) => char === '*' ? [0,0,0xff,0xff]:[0xff,0xff,0xff,0xff])))
-      let timeGlyphs = Array.from(time).map((char)=>font[char]?.map((row)=>Array.from(row).map((char) => char === '*' ? [0,0,0xff,0xff]:[0xff,0xff,0xff,0xff])))
-      for (let i = 0; i < slideWidth*4; i++) {
-        for (let j = 0; j < slideHeight; j++) {
-          if(j > slideHeight/2) {
-            top[(j * slideWidth*4) + i] = 0xff
-            top[((j * slideWidth*4) + i)+1] = 0xff
-            top[((j * slideWidth*4) + i)+2] = 0xff
-          }
-        }
-      }
-      const dateOffset = slideHeight/2+1
-      const timeOffset = slideHeight/2+9
-      const [glyphWidth, glyphHeight] = [5,7]
-      for (let currChar = 0; currChar < date.length; currChar++) {
-        for (let py = 0; py < glyphHeight; py ++) {
-          for (let px = 0; px < glyphWidth; px ++) {
-            for(const [channelOffset,channel] of dateGlyphs[currChar][py][px].entries()) {
-              top[(((py+dateOffset) * (slideWidth*4)) + ((currChar*(glyphWidth+1)*4)+(px*4)))+channelOffset] = channel
-            }
-          }
-        }
-      }
-      for (let currChar = 0; currChar < time.length; currChar++) {
-        for (let py = 0; py < glyphHeight; py ++) {
-          for (let px = 0; px < glyphWidth; px ++) {
-            for(const [channelOffset,channel] of timeGlyphs[currChar][py][px].entries()) {
-              top[(((py+timeOffset) * (slideWidth*4)) + ((currChar*(glyphWidth+1)*4)+(px*4)))+channelOffset] = channel
-            }
-          }
-        }
-      }
-			postFrame(top);
+	const stop = () => {
+		post = null;
+		clearTimeout(timeout);
+		timeout = null;
+	};
+
+	const update = () => {
+		clearTimeout(timeout);
+		const date = new Date();
+		updateStrings(date);
+		drawFrame();
+		let milliseconds = date.getMilliseconds();
+		timeout = setTimeout(update, 1000 - milliseconds);
+	};
+
+	const setSize = (size) => {
+		if (post != null) {
+			post(image);
 		}
 	};
 
-  const createUI = (element) => {
+	const updateStrings = (date) => {
+		const localHour = date.getHours();
+		if (lastLocalHour !== localHour) {
+			lastLocalHour = localHour;
+			if (!overrideCityCode) {
+				cityCode = guessCityCode();
+			}
+		}
+
+		currentFrame = Math.min(currentScene.last, currentScene.first + ((date.getSeconds() + currentScene.offset) % 60));
+		const formattedDate = date
+			.toLocaleString("en-US", {
+				timeZone: timeZonesByCityCode[cityCode],
+				weekday: "short",
+				year: "numeric",
+				month: "short",
+				day: "2-digit",
+				hour: "numeric",
+				minute: "2-digit",
+				second: "2-digit",
+				hour12: true,
+				calendar: "gregory",
+			})
+			.toUpperCase();
+		const [_, dayName, month, day, year, hour, minute, second, amPm] = formattedDate.match(dissectFormattedDate);
+		dateString = `${month}/${day}/${year}(${dayName})`;
+		timeString = `${hour.toString().padStart(2, " ")}:${minute}   ${amPm}`;
+		secondsString = second;
+	};
+
+	const drawFrame = () => {
+		if (post == null || sceneFrames[currentFrame] == null) {
+			return;
+		}
+
+		sceneFrames[currentFrame].blitTo(image, 0, 0, 0, 0, width, 16);
+
+		const blue = (s) => (s ? 2 : 0);
+		const green = (s) => (s ? 3 : 0);
+
+		const horizAdvance = font.size[0] + 1;
+		{
+			let x = 0;
+			for (const c of dateString) {
+				font.glyphs[c].blitTo(image, 0, 0, x, 17, ...font.size, blue);
+				x += horizAdvance;
+			}
+		}
+		{
+			let x = 0;
+			for (const c of cityCode) {
+				font.glyphs[c].blitTo(image, 0, 0, x, 25, ...font.size, green);
+				x += horizAdvance;
+			}
+		}
+		{
+			let x = horizAdvance * 6;
+			for (const c of timeString) {
+				font.glyphs[c].blitTo(image, 0, 0, x, 25, ...font.size, blue);
+				x += horizAdvance;
+			}
+		}
+
+		const thinHorizAdvance = thinFont.size[0] + 1;
+		{
+			let x = thinHorizAdvance * 14;
+			for (const c of secondsString) {
+				thinFont.glyphs[c].blitTo(image, 0, 0, x, 25, ...thinFont.size, blue);
+				x += thinHorizAdvance;
+			}
+		}
+
+		if (post != null) {
+			post(image);
+		}
+	};
+
+	const createUI = (element) => {
 		element.innerHTML = controlTemplate;
 		const sceneSelect = element.querySelector("select.scene-select");
 		sceneSelect.value = currentScene.id;
 		sceneSelect.onchange = () => {
 			currentScene = scenes.find((scene) => scene.id === sceneSelect.value);
-			currentFrame = currentScene.first;
-			changeSlide();
+			update();
+		};
+
+		const citySelect = element.querySelector("select.city-select");
+		citySelect.value = "Auto";
+		citySelect.onchange = () => {
+			overrideCityCode = citySelect.value !== "Auto";
+			if (overrideCityCode) {
+				cityCode = citySelect.value;
+			} else {
+				cityCode = guessCityCode();
+			}
+			update();
 		};
 	};
 
+	(async () => {
+		sceneFrames = await fetchImageSheet("./assets/posy.bmp", [width, height]);
+		currentFrame = 0;
+		updateStrings(new Date());
+		drawFrame();
+	})();
 
-  (async () => {
-    images = await fetchImageSheet("./assets/posy.bmp", [slideWidth, slideHeight]);
-    totalFrames = images.length - 5;
-    currentFrame = 0;
-    changeSlide();
-  })();
-
-  return {
-    ...createDemo({
-      start,
-      stop,
-      setSize,
-      requiredSize: [slideWidth, slideHeight], createUI
-    }),
-    changeSlide,
-  };
+	return createDemo({
+		start,
+		stop,
+		setSize,
+		requiredSize: [width, height],
+		createUI,
+	});
 };

@@ -1,4 +1,5 @@
 import createDemo from "./demo.js";
+import VoltMap from "../volt-map.js";
 import { fetchImageSheet } from "../utils.js";
 
 const scenes = [

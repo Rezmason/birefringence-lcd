@@ -1,4 +1,5 @@
 import createDemo from "./demo.js";
+import VoltMap from "../volt-map.js";
 
 const mod = (n, d) => ((n % d) + d) % d;
 
@@ -106,9 +107,8 @@ export default (analog) => {
 			.fill()
 			.map(() => [Math.floor(Math.random() * height), Math.random() * width]);
 
-		image = Array(height)
-			.fill()
-			.map(() => Array(width).fill(0));
+		image = new VoltMap(width, height, analog);
+		image.fill(0);
 
 		globeRadius = Math.ceil(0.5625 * height);
 		globeDiameter = globeRadius * 2 + 1;
@@ -149,9 +149,9 @@ export default (analog) => {
 		for (let i = 0; i < height; i++) {
 			for (let j = 0; j < width; j++) {
 				if (analog) {
-					image[i][j] = 2.6;
+					image.data[i * width + j] = 2.6;
 				} else {
-					image[i][j] = Math.random() < 0.3 ? 1 : 2;
+					image.data[i * width + j] = Math.random() < 0.3 ? 1 : 2;
 				}
 			}
 		}
@@ -159,12 +159,12 @@ export default (analog) => {
 		for (const [y, x] of stars) {
 			if (analog) {
 				const starX = mod(x + scroll, width);
-				image[y][Math.floor(starX)] = mix(4.0, 2.6, starX % 1);
-				image[y][Math.floor((starX + 1) % width)] = mix(2.6, 4.0, starX % 1);
+				image.data[y * width + Math.floor(starX)] = mix(4.0, 2.6, starX % 1);
+				image.data[y * width + Math.floor((starX + 1) % width)] = mix(2.6, 4.0, starX % 1);
 			} else {
 				const starX = Math.floor(mod(x + scroll, width));
-				image[y][starX] = 0;
-				image[y][(starX + 1) % width] = 0;
+				image.data[y * width + starX] = 0;
+				image.data[y * width + ((starX + 1) % width)] = 0;
 			}
 		}
 
@@ -192,7 +192,7 @@ export default (analog) => {
 						value = 0;
 					}
 				}
-				image[i][j + centerX] = value;
+				image.data[i * width + j + centerX] = value;
 			}
 		}
 
@@ -202,5 +202,5 @@ export default (analog) => {
 		animationFrameRequest = requestAnimationFrame(update);
 	};
 
-	return createDemo({ start, stop, setSize, analog });
+	return createDemo({ start, stop, setSize });
 };
