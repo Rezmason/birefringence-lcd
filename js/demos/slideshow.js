@@ -6,7 +6,7 @@ const scenes = [
 	{ name: "Built-in Demo", id: "built-in-demo", first: 0, last: 27 },
 	{ name: "Town", id: "town", first: 29, last: 88 },
 	{ name: "Harbor", id: "harbor", first: 89, last: 148 },
-	{ name: "Safari", id: "safari", first: 158, last: 171 }, // TODO: complete
+	{ name: "Safari", id: "safari", first: 158, last: 170 }, // TODO: complete
 	{ name: "Posy's Tour", id: "posy-tour", first: 172, last: 265 },
 	{ name: "Illustrations", id: "illustrations", first: 218, last: 233 },
 	{ name: "Desktop Menu", id: "desktop-menu", first: 258, last: 264 },
@@ -119,7 +119,6 @@ export default () => {
 		} else {
 			currentFrame += incr;
 		}
-		console.log("Current frame:", currentScene.id, currentFrame);
 		if (postFrame != null) {
 			postFrame(images[currentFrame]);
 		}

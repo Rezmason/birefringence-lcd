@@ -59,9 +59,9 @@ const guessCityCode = () => {
 };
 
 const scenes = [
-	{ name: "Town", id: "town", first: 29, last: 88, offset: 18 },
-	{ name: "Harbor", id: "harbor", first: 89, last: 148, offset: 60 - 49 },
-	{ name: "Safari", id: "safari", disabled: true, first: 158, last: 171, offset: 60 - 0 }, // TODO: complete
+	{ name: "Town", id: "town", source: "posy", first: 29, last: 88, offset: 18 },
+	{ name: "Harbor", id: "harbor", source: "posy", first: 89, last: 148, offset: 60 - 49 },
+	{ name: "Safari*", id: "safari", source: "safari", first: 0, last: 59, offset: 0 },
 ];
 
 const controlTemplate = `
@@ -80,7 +80,8 @@ const [width, height] = [95, 32];
 export default () => {
 	let currentScene = scenes.find((scene) => scene.id === "town");
 	let currentFrame = 0;
-	let sceneFrames = [];
+	let posyFrames = [], safariFrames = [];
+	let sourceFrames = posyFrames;
 
 	let post = null;
 	let timeout = null;
@@ -152,10 +153,10 @@ export default () => {
 	};
 
 	const drawFrame = () => {
-		if (post == null || sceneFrames[currentFrame] == null) {
+		if (post == null || sourceFrames[currentFrame] == null) {
 			return;
 		}
-		sceneFrames[currentFrame].blitTo(image, 0, 0, 0, 0, width, 16);
+		sourceFrames[currentFrame].blitTo(image, 0, 0, 0, 0, width, 16);
 		const blue = (s) => (s ? 2 : 0);
 		const green = (s) => (s ? 3 : 0);
 		writeTextToImage(image, font, dateString, 0, 17, 1, blue);
@@ -171,6 +172,7 @@ export default () => {
 		sceneSelect.value = currentScene.id;
 		sceneSelect.onchange = () => {
 			currentScene = scenes.find((scene) => scene.id === sceneSelect.value);
+			sourceFrames = currentScene.source === "safari" ? safariFrames : posyFrames;
 			update();
 		};
 
@@ -188,7 +190,11 @@ export default () => {
 	};
 
 	(async () => {
-		sceneFrames = await fetchImageSheet("./assets/posy.bmp", [width, height]);
+		[posyFrames, safariFrames] = await Promise.all([
+			fetchImageSheet("./assets/posy.bmp", [width, 32]),
+			fetchImageSheet("./assets/safari_reconstructed.bmp", [width, 16]),
+		]);
+		sourceFrames = posyFrames;
 		currentFrame = 0;
 		updateStrings(new Date());
 		drawFrame();
